@@ -23,8 +23,8 @@
   button{cursor:pointer}
   .app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:8px 16px;background:linear-gradient(110deg,#1b1b1d 0 70%,#2a2a2d 100%);color:#fff;box-shadow:0 2px 16px rgba(0,0,0,.22);border-bottom:3px solid var(--accent)}
   .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
-  .logo-box{display:grid;place-items:center;height:48px;background:#fff;border-radius:11px;padding:4px 7px;box-shadow:0 3px 12px rgba(0,0,0,.20)}
-  .logo-box img{height:100%;width:auto;max-width:150px;object-fit:contain;display:block}
+  .logo-box{display:flex;align-items:center;justify-content:center;height:48px;background:#fff;border-radius:11px;padding:4px 8px;box-shadow:0 3px 12px rgba(0,0,0,.20)}
+  .logo-box img{max-height:40px;max-width:110px;width:auto;height:auto;object-fit:contain;display:block}
   .brand-txt{min-width:0;overflow:hidden}
   .brand-txt h1{font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brand-txt small{display:block;opacity:.85;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -133,6 +133,22 @@
   .test-badge.pass{background:#e7f7ee;color:var(--ok)}.test-badge.fail{background:#fdecec;color:var(--red)}
   .test-detail{font-size:12px;color:var(--muted)}
   .rep-editable{border:1px dashed var(--accent);border-radius:10px;padding:14px;background:#fff}
+  /* Vista previa del informe en pantalla: logos y fotos con tamaño y proporción controlados */
+  #reportPreview .print-head{position:static;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:12px;height:auto}
+  #reportPreview .print-head img.toping{height:52px;width:auto;max-width:120px;object-fit:contain}
+  #reportPreview .print-head img.pyme{height:46px;width:auto;max-width:90px;object-fit:contain;margin-left:auto}
+  #reportPreview .print-head .ph-prof{font-size:11px;line-height:1.3}
+  #reportPreview .print-foot{display:none}
+  #reportPreview .rep-title h1{font-size:18px;color:var(--brand);margin:4px 0}
+  #reportPreview .rep-title p{font-size:12px;color:var(--muted);margin:2px 0}
+  #reportPreview .rep-sec h2{font-size:14px;background:#f3ede8;color:var(--brand);padding:6px 9px;margin:12px 0 6px;border-left:4px solid var(--accent)}
+  #reportPreview table{font-size:12px}
+  #reportPreview .rep-photos{display:flex;flex-wrap:wrap;gap:10px}
+  #reportPreview .rep-photos figure{margin:0;text-align:center}
+  #reportPreview .rep-photos img{width:250px;height:200px;object-fit:cover;border:1px solid var(--line);border-radius:6px}
+  #reportPreview .rep-photos figcaption{font-size:11px;color:var(--muted);max-width:250px}
+  #reportPreview .sign-row{display:flex;gap:30px;margin-top:24px}
+  #reportPreview .sign-box{flex:1;text-align:center;font-size:12px;border-top:1px solid #333;padding-top:6px}
   @media(max-width:900px){
     .layout{display:block}nav{display:none}
     .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:30;background:#fff;border-top:1px solid var(--line);overflow:auto;padding:5px}
@@ -152,8 +168,8 @@
     @page{size:A4;margin:30mm 12mm 16mm 12mm}
     .print-head{position:fixed;top:-24mm;left:0;right:0;height:22mm;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--accent)}
     .print-head .ph-left{display:flex;align-items:center;gap:8px}
-    .print-head img.toping{height:18mm;width:auto}
-    .print-head img.pyme{height:16mm;width:auto;margin-left:auto}
+    .print-head img.toping{height:18mm;width:auto;max-width:36mm;object-fit:contain}
+    .print-head img.pyme{height:16mm;width:auto;max-width:26mm;object-fit:contain;margin-left:auto}
     .print-head .ph-prof{font-size:9.5px;line-height:1.25;color:#111;text-align:left}
     .print-head .ph-prof b{font-size:10.5px;color:var(--brand)}
     .print-foot{position:fixed;bottom:-12mm;left:0;right:0;height:10mm;font-size:9px;color:#555;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center}
@@ -234,6 +250,7 @@
         <div id="pdfStatus" class="help" style="margin-top:8px"></div>
       </div>
       <div class="notice hidden" id="pdfSummary"></div>
+      <div class="notice hidden" id="excelSummary"></div>
     </div>
     <div class="card">
       <div class="section-head"><h3>Expedientes activos</h3><div class="actions"><span class="help" id="dbFilterInfo"></span></div></div>
@@ -921,12 +938,15 @@ function caseRow(c,isGestion){
 /* ---------- Excel / JSON ---------- */
 function colVal(o,keys){for(const k of Object.keys(o)){const kn=k.toLowerCase().trim();if(keys.some(x=>kn.includes(x)))return o[k];}return '';}
 async function importSpreadsheet(file){
+  const sum=$('#excelSummary');
+  if(sum){sum.className='notice';sum.textContent='⏳ IMPORTANDO '+file.name.toUpperCase()+'…';sum.classList.remove('hidden');}
+  try{
   const name=file.name.toLowerCase(); let rows=[];
   if(name.endsWith('.csv')){rows=csvToObjects(await file.text());}
-  else{if(!window.XLSX){toast('XLSX no disponible; use CSV');return;}const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});}
-  const existing=await dbGetAll('cases'); const tipo=$('#newTipo').value||'pp'; let created=0,dup=0;
+  else{if(!window.XLSX){if(sum){sum.className='notice danger';sum.textContent='⚠️ LIBRERÍA XLSX NO DISPONIBLE; USE CSV.';}toast('XLSX no disponible; use CSV');return;}const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});}
+  const existing=await dbGetAll('cases'); const tipo=$('#newTipo').value||'pp'; let created=0,dup=0,skipped=0;
   for(const r of rows){
-    const folio=cleanFolio(colVal(r,['folio','finca','matricula','matrícula'])); if(!folio)continue;
+    const folio=cleanFolio(colVal(r,['folio','finca','matricula','matrícula'])); if(!folio){skipped++;continue;}
     if(findCaseByFolio(existing,folio,tipo)){dup++;continue;}
     const s=newState(); s.tramite.tipo=tipo; s.meta.id=uid();s.meta.createdAt=Date.now();s.meta.updatedAt=Date.now();s.meta.status='ASIGNADO';
     s.inmueble.folioFinca=folio; s.tramite.expediente=generateExpediente(tipo,folio);
@@ -938,7 +958,14 @@ async function importSpreadsheet(file){
     s.ubicacion.distrito=String(colVal(r,['distrito'])||''); s.ubicacion.direccion=String(colVal(r,['direccion','dirección','situacion'])||'');
     applyUppercase(s); await dbPut('cases',s); existing.push(s); created++;
   }
-  refreshLists(); toast(`Importación: ${created} creado(s), ${dup} duplicado(s) omitido(s)`);
+  refreshLists();
+  if(sum){sum.className='notice '+(created?'ok':'warn');sum.innerHTML=`✅ EXCEL PROCESADO (${esc(file.name.toUpperCase())}): <b>${created}</b> expediente(s) creado(s), <b>${dup}</b> folio(s) duplicado(s) omitido(s)`+(skipped?`, <b>${skipped}</b> fila(s) sin folio`:'')+'.';}
+  toast(`Importación: ${created} creado(s), ${dup} duplicado(s) omitido(s)`);
+  }catch(err){
+    console.error(err);
+    if(sum){sum.className='notice danger';sum.textContent='⚠️ ERROR AL IMPORTAR: '+err.message;}
+    toast('Error al importar el archivo');
+  }
 }
 function csvToObjects(text){const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim());if(!lines.length)return[];const split=l=>{const o=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++;}else q=!q;}else if(ch===','&&!q){o.push(c);c='';}else c+=ch;}o.push(c);return o;};const h=split(lines[0]).map(x=>x.trim());return lines.slice(1).map(l=>{const c=split(l);const o={};h.forEach((k,i)=>o[k]=(c[i]||'').trim());return o;});}
 async function exportJson(){const cases=await dbGetAll('cases');const b=new Blob([JSON.stringify({exported:new Date().toISOString(),settings,cases},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='respaldo_toping.json';a.click();}
@@ -998,11 +1025,19 @@ function buildReportHTML(st){
   <div class="rep-sec"><div class="sign-row"><div class="sign-box">${esc(r.nombre||settings.profName)}<br>${esc(r.registro||settings.profReg)}<br>PROFESIONAL RESPONSABLE</div><div class="sign-box">FECHA: ${esc(fmtDate(r.fecha)||fmtDate(todayISO()))}</div></div></div>`;
 }
 function buildReport(){
-  $('#printArea').innerHTML=buildReportHTML(state);
-  const preview=buildReportHTML(state).replace('class="print-head"','class="print-head" style="position:static;border-bottom:2px solid #f26a1b;padding-bottom:8px;margin-bottom:8px;display:flex;align-items:center;gap:10px"').replace(/class="print-foot"[^>]*>[\s\S]*?<\/div>/,'');
-  $('#reportPreview').innerHTML=preview;
+  const html=buildReportHTML(state);
+  $('#printArea').innerHTML=html;
+  $('#reportPreview').innerHTML=html;  // los estilos #reportPreview controlan tamaño de logos y fotos en pantalla
 }
-function syncPreviewToPrint(){ const pv=$('#reportPreview'); if(pv&&pv.innerText.trim().length>20){ $('#printArea').innerHTML=reportHead()+pv.innerHTML; } else { buildReport(); } }
+function syncPreviewToPrint(){
+  const pv=$('#reportPreview');
+  if(pv&&pv.innerText.trim().length>20){
+    // Evita encabezados duplicados: quita el head/foot de la copia editada y antepone uno limpio
+    const tmp=document.createElement('div'); tmp.innerHTML=pv.innerHTML;
+    tmp.querySelectorAll('.print-head,.print-foot').forEach(n=>n.remove());
+    $('#printArea').innerHTML=reportHead()+tmp.innerHTML;
+  } else { buildReport(); }
+}
 function downloadHtml(){buildReport();const html='<!doctype html><meta charset="utf-8"><title>'+esc(state.tramite.expediente||'informe')+'</title>'+'<div>'+$('#reportPreview').innerHTML+'</div>';const b=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(state.tramite.expediente||'informe')+'.html';a.click();toast('HTML editable descargado');}
 function emailReport(to){
   const dest=to||state.responsable.email||''; const tt=TRAMITE_TYPES[state.tramite.tipo]||TRAMITE_TYPES.general;
