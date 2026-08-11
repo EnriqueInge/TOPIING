@@ -1,8 +1,9 @@
 /* Service worker: cachea el shell de la app para uso offline.
    Nota: las librerías de PDF/OCR/Excel se sirven desde CDN y requieren
    conexión la primera vez; el resto de la app funciona sin conexión. */
-const CACHE = 'ubi-bien-inmueble-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'ubi-bien-inmueble-v2';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './lib/pdf.min.js', './lib/pdf.worker.min.js', './lib/xlsx.full.min.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

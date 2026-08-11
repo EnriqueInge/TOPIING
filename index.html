@@ -459,9 +459,13 @@
 <div id="printArea"></div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Librerías locales (funcionan sin internet). Tesseract (OCR de respaldo) se carga bajo demanda desde CDN. -->
+<script src="lib/pdf.min.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
+<script>
+/* OCR opcional: se intenta cargar solo si hay conexión; si no, la app sigue funcionando sin OCR */
+(function(){if(navigator.onLine){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js';s.async=true;document.head.appendChild(s);}})();
+</script>
 <script>
 "use strict";
 
@@ -594,7 +598,7 @@ function applyExtraction(fields){
 /* ---------- PDF ---------- */
 async function readPdfText(buf,onp){
   if(!window.pdfjsLib)throw new Error('pdf.js no disponible');
-  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc='lib/pdf.worker.min.js';
   const pdf=await pdfjsLib.getDocument({data:buf}).promise; let text='';
   for(let p=1;p<=pdf.numPages;p++){const pg=await pdf.getPage(p);const tc=await pg.getTextContent();text+=tc.items.map(i=>i.str).join(' ')+'\n';onp&&onp(Math.round(p/pdf.numPages*45));}
   return {text,pdf};
@@ -606,14 +610,32 @@ async function ocrPdf(pdf,onp){
 }
 function normSpaces(s){return String(s||'').replace(/ /g,' ').replace(/[ \t]+/g,' ');}
 function firstMatch(t,rs){for(const re of rs){const m=t.match(re);if(m&&m[1])return m[1].trim();}return '';}
+function stripAccents(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();}
+/* Número oficial de provincia para armar la matrícula completa */
+const PROVINCE_NUM={'SAN JOSE':'1','ALAJUELA':'2','CARTAGO':'3','HEREDIA':'4','GUANACASTE':'5','PUNTARENAS':'6','LIMON':'7'};
+function provinceNumber(name){return PROVINCE_NUM[stripAccents(name)]||'';}
 function extractFolio(text){
   const t=normSpaces(text);
-  return firstMatch(t,[
+  // 1) Formato clásico completo: 7-90252-000
+  const classic=firstMatch(t,[
     /matr[íi]cula(?:\s*n[°º.]*)?[:\s]*([1-7]-\d{5,6}-\d{3})/i,
     /folio\s*real[:\s]*([1-7]-\d{5,6}-\d{3})/i,
     /finca[:\s]*([1-7]-\d{5,6}-\d{3})/i,
     /\b([1-7]-\d{5,6}-\d{3})\b/
   ]);
+  if(classic) return classic;
+  // 2) Consulta del Registro Nacional: "MATRÍCULA: 522410---000" + "PROVINCIA: ALAJUELA"
+  const provName=firstMatch(t,[
+    /provincia[:\s]+([a-záéíóúñ ]{3,20}?)(?=\s+(?:finca|duplicado|horizontal|derecho|folio)|\s*\n|$)/i,
+    /de\s+la\s+provincia\s+de\s+([a-záéíóúñ ]{3,20}?)(?=\s+(?:finca|linderos|mide|plano|zona)\b|\s*\n|\s{2,}|[.,]|$)/i
+  ]);
+  const pn=provinceNumber(provName);
+  const rn=t.match(/matr[íi]cula[:\s]*(\d{4,6})\s*-{1,3}\s*(\d{3})\b/i);
+  if(rn) return (pn?pn+'-':'')+rn[1]+'-'+rn[2];
+  // 3) "FINCA: 522410 ... DERECHO: 000"
+  const fm=t.match(/finca[:\s]+(\d{4,6})\b/i), dm=t.match(/derecho[:\s]+(\d{3})\b/i);
+  if(fm) return (pn?pn+'-':'')+fm[1]+'-'+(dm?dm[1]:'000');
+  return '';
 }
 function extractArea(text){
   const t=normSpaces(text);
@@ -625,21 +647,30 @@ function extractArea(text){
   if(wM){ const num=areaWordsToNumber(wM[1]); if(num!=null) return {value:String(num),confidence:0.7,fromWords:true}; }
   return null;
 }
+/* Quita el prefijo numérico de distritos/cantones del Registro Nacional: "11-CUTRIS" -> "CUTRIS" */
+function cleanAdminName(s){return String(s||'').replace(/^\s*\d+\s*-\s*/,'').trim();}
 function extractFields(text){
   const t=normSpaces(text); const out={};
   const push=(p,v,c)=>{if(v)out[p]={value:String(v).trim(),confidence:c};};
   const folio=extractFolio(t); push('inmueble.folioFinca',folio,folio?0.92:0);
-  push('inmueble.planoCatastrado',firstMatch(t,[/plano\s*catastrad[oa][:\s]*([A-Z]-\d{6,7}-\d{4})/i,/\b([A-Z]-\d{6,7}-\d{4})\b/]),0.85);
-  push('inmueble.propietario',firstMatch(t,[/propietari[oa][:\s]*([A-ZÁÉÍÓÚÑ][^\n]{4,70}?)(?:\s{2,}|c[eé]dula|identificaci|\n|$)/i,/titular[:\s]*([A-ZÁÉÍÓÚÑ][^\n]{4,70})/i]),0.7);
-  push('inmueble.identificacion',firstMatch(t,[/c[eé]dula(?:\s*jur[íi]dica)?[:\s]*(\d[\d\-]{7,})/i,/identificaci[óo]n[:\s]*(\d[\d\-]{7,})/i]),0.8);
+  push('inmueble.planoCatastrado',firstMatch(t,[/plano\s*catastrad[oa][:\s]*([A-Z]{1,2}-\d{6,7}-\d{4})/i,/plano[:\s]*([A-Z]{1,2}-\d{6,7}-\d{4})/i,/\b([A-Z]{1,2}-\d{6,7}-\d{4})\b/]),0.85);
+  push('inmueble.propietario',firstMatch(t,[/propietari[oa][s]?[:\s]*\n?\s*([A-ZÁÉÍÓÚÑ][^\n]{4,70}?)(?:\s{2,}|c[eé]dula|identificaci|\n|$)/i,/titular[:\s]*([A-ZÁÉÍÓÚÑ][^\n]{4,70})/i]),0.7);
+  push('inmueble.identificacion',firstMatch(t,[/c[eé]dula(?:\s*(?:jur[íi]dica|(?:de\s+)?identidad|f[íi]sica))?[:\s]*(\d[\d\-]{7,})/i,/identificaci[óo]n[:\s]*(\d[\d\-]{7,})/i]),0.8);
   const area=extractArea(t); if(area) out['inmueble.areaRegistro']={value:area.value,confidence:area.confidence};
-  push('inmueble.usoObservado',firstMatch(t,[/naturaleza[:\s]*([^\n]{4,60}?)(?=\s+(?:provincia|cant[óo]n|distrito|propietario|plano|[áa]rea|mide|situaci[óo]n|c[eé]dula)|\s*$|\n)/i]),0.6);
-  const STOP='(?=\\s+(?:cant[óo]n|distrito|provincia|propietario|titular|plano|[áa]rea|mide|medida|naturaleza|situaci[óo]n|direcci[óo]n|c[eé]dula|matr[íi]cula|identificaci|folio)|\\s*$|\\n)';
+  push('inmueble.usoObservado',firstMatch(t,[/naturaleza[:\s]*([^\n]{4,60}?)(?=\s+(?:provincia|cant[óo]n|distrito|situada|propietario|plano|[áa]rea|mide|situaci[óo]n|c[eé]dula)|\s*$|\n)/i]),0.6);
+  // Formato Registro Nacional: "SITUADA EN EL DISTRITO 11-CUTRIS CANTON 10-SAN CARLOS DE LA PROVINCIA DE ALAJUELA"
+  const sit=t.match(/situad[ao]\s+en\s+el\s+distrito\s+([0-9]*\s*-?\s*[a-záéíóúñ ]+?)\s+cant[óo]n\s+([0-9]*\s*-?\s*[a-záéíóúñ ]+?)\s+de\s+la\s+provincia\s+de\s+([a-záéíóúñ ]+?)(?=\s+(?:finca|linderos|mide|plano|norte|sur|este|oeste|zona|naturaleza)\b|\s*\n|\s{2,}|[.,]|$)/i);
+  if(sit){
+    push('ubicacion.distrito',cleanAdminName(sit[1]),0.9);
+    push('ubicacion.canton',cleanAdminName(sit[2]),0.9);
+    push('ubicacion.provincia',cleanAdminName(sit[3]),0.9);
+  }
+  const STOP='(?=\\s+(?:cant[óo]n|distrito|provincia|propietario|titular|plano|[áa]rea|mide|medida|naturaleza|situaci[óo]n|situada|direcci[óo]n|c[eé]dula|matr[íi]cula|identificaci|folio|finca|duplicado|horizontal|derecho|linderos)|\\s*$|\\n)';
   const loc=l=>firstMatch(t,[new RegExp(l+'[:\\s]+([A-Za-zÁÉÍÓÚÑáéíóúñ .]{3,30}?)'+STOP,'i')]);
-  push('ubicacion.provincia',loc('provincia'),0.7);
-  push('ubicacion.canton',loc('cant[óo]n'),0.7);
-  push('ubicacion.distrito',loc('distrito'),0.7);
-  push('ubicacion.direccion',firstMatch(t,[/situaci[óo]n[:\s]*([^\n]{6,90})/i,/direcci[óo]n[:\s]*([^\n]{6,90})/i]),0.55);
+  if(!out['ubicacion.provincia'])push('ubicacion.provincia',cleanAdminName(loc('provincia')),0.7);
+  if(!out['ubicacion.canton'])push('ubicacion.canton',cleanAdminName(loc('cant[óo]n')),0.7);
+  if(!out['ubicacion.distrito'])push('ubicacion.distrito',cleanAdminName(loc('distrito')),0.7);
+  push('ubicacion.direccion',firstMatch(t,[/situaci[óo]n[:\s]*([^\n]{6,90})/i,/direcci[óo]n\s+exacta[:\s]*([^\n]{6,90})/i]),0.55);
   return out;
 }
 function adjustConfidence(fields,native){ if(native)return fields; const f={};Object.entries(fields).forEach(([k,v])=>f[k]={value:v.value,confidence:Math.min(v.confidence,0.55)});return f; }
@@ -1065,11 +1096,13 @@ function showView(target){
 /* ---------- PRUEBAS ---------- */
 const SAMPLE_FULL='REGISTRO INMOBILIARIO Matricula: 7-90252-000 Naturaleza: Terreno para construir Provincia: Limon Canton: Siquirres Distrito: Siquirres Propietario: MUTUAL CARTAGO Cedula juridica: 3-009-045222 Plano catastrado: L-0855909-1989 Mide: DOSCIENTOS CINCUENTA METROS CON CINCUENTA DECIMETROS CUADRADOS Situacion: De la Escuela 20 metros norte';
 const SAMPLE_PARTIAL='Folio Real: 1-334455-000 Provincia: San Jose Naturaleza: Lote';
+const SAMPLE_RN='REGISTRO NACIONAL CONSULTA POR NÚMERO DE FINCA MATRÍCULA: 522410---000 PROVINCIA: ALAJUELA FINCA: 522410 DUPLICADO: HORIZONTAL: DERECHO: 000 NATURALEZA: TERRENO PARA CONSTRUIR SITUADA EN EL DISTRITO 11-CUTRIS CANTON 10-SAN CARLOS DE LA PROVINCIA DE ALAJUELA FINCA SE ENCUENTRA EN ZONA CATASTRADA MIDE: QUINIENTOS METROS CUADRADOS PLANO:A-1782472-2014 PROPIETARIO: VERONICA VIVIANA DURAN ALVARADO CEDULA IDENTIDAD 3-0447-0598';
 function assert(c,m){if(!c)throw new Error(m||'assertion failed');}
 function runTests(){
   const results=[]; const add=(n,fn)=>{try{fn();results.push([true,n,'OK']);}catch(e){results.push([false,n,e.message]);}};
   add('Extracción exitosa + área en letras a número',()=>{const f=extractFields(SAMPLE_FULL);assert(f['inmueble.folioFinca'].value==='7-90252-000','folio');assert(f['inmueble.planoCatastrado'].value==='L-0855909-1989','plano');assert(f['ubicacion.provincia'].value.trim()==='Limon','prov '+JSON.stringify(f['ubicacion.provincia']));assert(f['inmueble.areaRegistro']&&f['inmueble.areaRegistro'].value==='250.5','area '+JSON.stringify(f['inmueble.areaRegistro']));});
   add('Conversión palabras→número',()=>{assert(areaWordsToNumber('DOSCIENTOS CINCUENTA CON CINCUENTA')===250.5,'250.5');assert(parseSpanishNumber('MIL DOSCIENTOS')===1200,'1200');assert(areaWordsToNumber('TRESCIENTOS')===300,'300');});
+  add('Informe registral del Registro Nacional (real)',()=>{const f=extractFields(SAMPLE_RN);assert(f['inmueble.folioFinca'].value==='2-522410-000','matrícula compuesta');assert(f['inmueble.areaRegistro'].value==='500','mide en letras');assert(f['ubicacion.canton'].value==='SAN CARLOS','cantón sin número');assert(f['ubicacion.distrito'].value==='CUTRIS','distrito');assert(f['inmueble.planoCatastrado'].value==='A-1782472-2014','plano');assert(f['inmueble.identificacion'].value==='3-0447-0598','cédula identidad');});
   add('Extracción parcial',()=>{const f=extractFields(SAMPLE_PARTIAL);assert(f['inmueble.folioFinca'].value==='1-334455-000','folio');assert(!f['inmueble.planoCatastrado'],'sin plano');assert(!f['inmueble.propietario'],'sin propietario');assert(!f['inmueble.areaRegistro'],'sin area');assert(f['ubicacion.provincia'],'con provincia');});
   add('Folio duplicado + nomenclatura PP',()=>{const exp=generateExpediente('pp','7-90252-000');assert(exp==='MUCAP-P.P-7-90252-000-'+new Date().getFullYear(),'nomenclatura '+exp);const store=[{meta:{id:'x'},tramite:{tipo:'pp',expediente:exp},inmueble:{folioFinca:'7-90252-000'}}];assert(findCaseByFolio(store,'7-90252-000','pp')!==null,'dup');assert(findCaseByFolio(store,' 7-90252-000 ','pp')!==null,'dup espacios');assert(findCaseByFolio(store,'7-90252-000','avaluo')===null,'otro tipo no dup');assert(findCaseByFolio(store,'1-000-000','pp')===null,'sin falso positivo');});
   add('Cambio de estado a Gestión',()=>{const s=newState();s.meta.estado='activo';s.meta.estado='gestion';assert(s.meta.estado==='gestion','estado');const all=[{meta:{estado:'activo'}},{meta:{estado:'gestion'}}];assert(all.filter(c=>c.meta.estado!=='gestion').length===1,'activos');assert(all.filter(c=>c.meta.estado==='gestion').length===1,'gestion');});

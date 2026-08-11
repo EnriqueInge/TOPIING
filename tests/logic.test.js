@@ -42,6 +42,15 @@ const FULL = 'REGISTRO Matricula: 7-90252-000 Naturaleza: Terreno Provincia: Lim
   'Propietario: MUTUAL CARTAGO Cedula juridica: 3-009-045222 Plano catastrado: L-0855909-1989 ' +
   'Mide: DOSCIENTOS CINCUENTA METROS CON CINCUENTA DECIMETROS CUADRADOS Situacion: De la Escuela 20 metros norte';
 const PARTIAL = 'Folio Real: 1-334455-000 Provincia: San Jose Naturaleza: Lote';
+// Formato real de "Consulta por número de finca" del Registro Nacional (informe registral)
+const REGISTRO_NACIONAL = 'REPÚBLICA DE COSTA RICA REGISTRO NACIONAL CONSULTA POR NÚMERO DE FINCA ' +
+  'MATRÍCULA: 522410---000 PROVINCIA: ALAJUELA FINCA: 522410 DUPLICADO: HORIZONTAL: DERECHO: 000 SEGREGACIONES: SI HAY ' +
+  'NATURALEZA: TERRENO PARA CONSTRUIR ' +
+  'SITUADA EN EL DISTRITO 11-CUTRIS CANTON 10-SAN CARLOS DE LA PROVINCIA DE ALAJUELA ' +
+  'FINCA SE ENCUENTRA EN ZONA CATASTRADA LINDEROS: NORTE : ESPERANZA SEQUEIRA SOTO ' +
+  'MIDE: QUINIENTOS METROS CUADRADOS PLANO:A-1782472-2014 ' +
+  'VALOR FISCAL: 30,268,875.00 COLONES PROPIETARIO: VERONICA VIVIANA DURAN ALVARADO ' +
+  'CEDULA IDENTIDAD 3-0447-0598 ESTADO CIVIL: CASADO UNA VEZ';
 
 test('Extracción exitosa + área en letras → número', () => {
   const f = ctx.extractFields(FULL);
@@ -55,6 +64,20 @@ test('Conversión de palabras a número', () => {
   assert(ctx.areaWordsToNumber('DOSCIENTOS CINCUENTA CON CINCUENTA') === 250.5, '250.5');
   assert(ctx.parseSpanishNumber('MIL DOSCIENTOS') === 1200, '1200');
   assert(ctx.areaWordsToNumber('TRESCIENTOS') === 300, '300');
+});
+
+test('Informe registral del Registro Nacional (documento real)', () => {
+  const f = ctx.extractFields(REGISTRO_NACIONAL);
+  assert(f['inmueble.folioFinca'].value === '2-522410-000', 'matrícula compuesta (provincia+finca+derecho): ' + JSON.stringify(f['inmueble.folioFinca']));
+  assert(f['inmueble.planoCatastrado'].value === 'A-1782472-2014', 'plano sin la palabra catastrado');
+  assert(f['inmueble.areaRegistro'].value === '500', 'MIDE en letras → 500: ' + JSON.stringify(f['inmueble.areaRegistro']));
+  assert(f['ubicacion.provincia'].value === 'ALAJUELA', 'provincia');
+  assert(f['ubicacion.canton'].value === 'SAN CARLOS', 'cantón sin prefijo numérico: ' + JSON.stringify(f['ubicacion.canton']));
+  assert(f['ubicacion.distrito'].value === 'CUTRIS', 'distrito sin prefijo numérico');
+  assert(/VERONICA VIVIANA DURAN ALVARADO/.test(f['inmueble.propietario'].value), 'propietario');
+  assert(f['inmueble.identificacion'].value === '3-0447-0598', 'cédula identidad');
+  assert(/TERRENO PARA CONSTRUIR/.test(f['inmueble.usoObservado'].value), 'naturaleza');
+  assert(ctx.generateExpediente('pp', f['inmueble.folioFinca'].value) === 'MUCAP-P.P-2-522410-000-' + YR, 'nomenclatura desde matrícula');
 });
 
 test('Extracción parcial: faltantes quedan sin detectar', () => {
