@@ -23,13 +23,14 @@
   button{cursor:pointer}
   .app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:8px 16px;background:linear-gradient(110deg,#1b1b1d 0 70%,#2a2a2d 100%);color:#fff;box-shadow:0 2px 16px rgba(0,0,0,.22);border-bottom:3px solid var(--accent)}
   .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
-  .logo-box{display:flex;align-items:center;justify-content:center;height:48px;background:#fff;border-radius:11px;padding:4px 8px;box-shadow:0 3px 12px rgba(0,0,0,.20)}
-  .logo-box img{max-height:40px;max-width:110px;width:auto;height:auto;object-fit:contain;display:block}
+  .logo-box{display:flex;align-items:center;justify-content:center;height:30px;flex:0 0 auto;background:#fff;border-radius:7px;padding:2px 5px;box-shadow:0 2px 8px rgba(0,0,0,.20)}
+  .logo-box img{max-height:24px;max-width:56px;width:auto;height:auto;object-fit:contain;display:block}
   .brand-txt{min-width:0;overflow:hidden}
   .brand-txt h1{font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brand-txt small{display:block;opacity:.85;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .header-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex:0 0 auto}
-  .logo-box.pyme{height:48px}
+  .logo-box.pyme{height:30px}
+  @media(max-width:520px){.logo-box.pyme{display:none}}
   .status-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px}
   .dot{width:8px;height:8px;border-radius:50%;background:#ffd54f}
   .dot.online{background:#6ef39d}.dot.offline{background:#ffb74d}
@@ -122,7 +123,7 @@
   .dropzone .big{font-size:15px;font-weight:800;margin:6px 0}
   .progressbar{height:8px;background:#eee2d6;border-radius:10px;overflow:hidden;margin-top:10px}
   .progressbar>span{display:block;height:100%;width:0;background:var(--accent);transition:.2s}
-  .filterbar{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+  .filterbar{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
   .filterbar .field{margin:0}
   .logo-preview{height:64px;background:#1b1b1d;border:1px solid var(--line);border-radius:10px;padding:6px;display:grid;place-items:center}
   .logo-preview img{max-height:100%;max-width:100%}
@@ -134,6 +135,10 @@
   .test-detail{font-size:12px;color:var(--muted)}
   .rep-editable{border:1px dashed var(--accent);border-radius:10px;padding:14px;background:#fff}
   /* Vista previa del informe en pantalla: logos y fotos con tamaño y proporción controlados */
+  #reportPreview .rep-wrap{width:100%;border-collapse:collapse}
+  #reportPreview .rep-wrap>thead>tr>th,#reportPreview .rep-wrap>tbody>tr>td{border:0;background:none;padding:0;text-align:left}
+  #reportPreview .rep-title{text-align:center;margin:0 0 14px;padding-bottom:10px;border-bottom:2px solid var(--accent)}
+  #reportPreview .rep-title .rt-co{font-size:10px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin:0 0 4px}
   #reportPreview .print-head{position:static;display:flex;align-items:center;gap:12px;border-bottom:3px solid var(--accent);padding-bottom:10px;margin-bottom:12px;height:auto}
   #reportPreview .print-head img.toping{height:52px;width:auto;max-width:120px;object-fit:contain}
   #reportPreview .print-head img.pyme{height:46px;width:auto;max-width:90px;object-fit:contain;margin-left:auto}
@@ -141,7 +146,7 @@
   #reportPreview .print-foot{display:none}
   #reportPreview .rep-title h1{font-size:18px;color:var(--brand);margin:4px 0}
   #reportPreview .rep-title p{font-size:12px;color:var(--muted);margin:2px 0}
-  #reportPreview .rep-sec h2{font-size:14px;background:#f3ede8;color:var(--brand);padding:6px 9px;margin:12px 0 6px;border-left:4px solid var(--accent)}
+  #reportPreview .rep-sec h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);background:none;border-left:none;border-bottom:2px solid var(--accent);padding:0 0 4px;margin:14px 0 8px}
   #reportPreview table{font-size:12px}
   #reportPreview .rep-photos{display:flex;flex-wrap:wrap;gap:10px}
   #reportPreview .rep-photos figure{margin:0;text-align:center}
@@ -162,33 +167,45 @@
   }
   @media print{
     .app-header,nav,.mobile-nav,.no-print,.savebar,.toast{display:none!important}
-    .layout{display:block}main{display:none!important}
+    .layout{display:none!important}main{display:none!important}
     body{background:#fff}
     #printArea{display:block}
-    @page{size:A4;margin:30mm 12mm 16mm 12mm}
-    .print-head{position:fixed;top:-24mm;left:0;right:0;height:22mm;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--accent)}
+    @page{size:A4;margin:10mm 12mm 16mm 12mm}
+    /* Encabezado repetido en cada página mediante thead (robusto en Chrome/Edge) */
+    .rep-wrap{width:100%;border-collapse:collapse}
+    .rep-wrap>thead>tr>th{border:0!important;background:none!important;padding:0!important;text-align:left}
+    .rep-wrap>tbody>tr>td{border:0!important;background:none!important;padding:0!important}
+    .print-head{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--accent);padding:2mm 0 2mm;margin-bottom:4mm}
     .print-head .ph-left{display:flex;align-items:center;gap:8px}
-    .print-head img.toping{height:18mm;width:auto;max-width:36mm;object-fit:contain}
-    .print-head img.pyme{height:16mm;width:auto;max-width:26mm;object-fit:contain;margin-left:auto}
+    .print-head img.toping{height:16mm;width:auto;max-width:34mm;object-fit:contain}
+    .print-head img.pyme{height:14mm;width:auto;max-width:24mm;object-fit:contain;margin-left:auto}
     .print-head .ph-prof{font-size:9.5px;line-height:1.25;color:#111;text-align:left}
     .print-head .ph-prof b{font-size:10.5px;color:var(--brand)}
     .print-foot{position:fixed;bottom:-12mm;left:0;right:0;height:10mm;font-size:9px;color:#555;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center}
-    .rep-title{text-align:center;margin:0 0 4px}
-    .rep-title h1{font-size:15px;margin:0;color:var(--brand)}
-    .rep-title p{font-size:10px;margin:2px 0;color:#333}
-    .rep-sec{margin:9px 0;break-inside:avoid}
-    .rep-sec h2{font-size:12px;background:#f3ede8;color:var(--brand);padding:5px 8px;margin:0 0 4px;border-left:4px solid var(--accent)}
-    #printArea table{width:100%;border-collapse:collapse;font-size:10px}
-    #printArea th,#printArea td{border:1px solid #9bb0c0;padding:4px 6px}
-    #printArea th{background:#f0f0f0}
+    .rep-title{text-align:center;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+    .rep-title .rt-co{font-size:9px;letter-spacing:.2em;color:#777;text-transform:uppercase;margin:0 0 3px}
+    .rep-title h1{font-size:16px;margin:0;color:#1b1b1d;letter-spacing:.05em}
+    .rep-title p{font-size:10px;margin:4px 0 0;color:#444}
+    .rep-sec{margin:12px 0;break-inside:avoid}
+    .rep-sec h2{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#1b1b1d;background:none;padding:0 0 3px;margin:0 0 6px;border-left:none;border-bottom:1.5px solid var(--accent)}
+    #printArea table{width:100%;border-collapse:collapse;font-size:10px;line-height:1.35}
+    #printArea th,#printArea td{border:1px solid #cdd6de;padding:5px 7px;vertical-align:top}
+    #printArea th{background:#f2f4f6;color:#1b1b1d;text-transform:uppercase;font-size:9px;letter-spacing:.05em}
+    #printArea td b{color:#33414d}
+    #printArea tr:nth-child(even) td{background:#fafbfc}
     .rep-photos{display:flex;flex-wrap:wrap;gap:6mm}
     .rep-photos figure{margin:0;break-inside:avoid;text-align:center}
     .rep-photos img{width:10cm;height:8cm;object-fit:cover;display:block;border:1px solid #999;image-rendering:auto}
     .rep-photos figcaption{font-size:9px;padding:2px 0;color:#333;width:10cm}
-    .sign-row{display:flex;gap:30px;margin-top:26px}
-    .sign-box{flex:1;text-align:center;font-size:10px;border-top:1px solid #333;padding-top:4px}
+    .sign-row{display:flex;gap:40px;margin-top:34px}
+    .sign-box{flex:1;text-align:center;font-size:10px;border-top:1px solid #666;padding-top:5px;color:#222}
+    html,body{margin:0!important;padding:0!important}
+    #printArea{margin:0;padding:0}
+    .rep-sec:last-child{margin-bottom:0}
+    .rep-photos{gap:4mm}
+    .rep-sec-photos{break-inside:auto}
   }
-  #printArea{display:none}
+  @media screen{#printArea{display:none}}
 </style>
 </head>
 <body>
@@ -218,8 +235,6 @@
   <a class="nav-btn" href="#photos" data-target="photos"><span class="nav-num">4</span> Fotografías</a>
   <a class="nav-btn" href="#report" data-target="report"><span class="nav-num">5</span> Informe</a>
   <a class="nav-btn" href="#gestion" data-target="gestion"><span class="nav-num">6</span> Gestión / Revisión</a>
-  <a class="nav-btn" href="#profile" data-target="profile"><span class="nav-num">7</span> Perfil</a>
-  <a class="nav-btn" href="#tests" data-target="tests"><span class="nav-num">8</span> Pruebas</a>
   <div class="nav-footer">Datos en este dispositivo (IndexedDB). Respalde en JSON antes de borrar datos del navegador.</div>
 </nav>
 
@@ -236,7 +251,7 @@
         <label class="field col-4"><span class="lab">Tipo de trámite del nuevo expediente</span>
           <select id="newTipo"></select></label>
         <div class="col-8" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap">
-          <label class="btn primary" style="display:inline-block">📄 Cargar PDF registral<input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden></label>
+          <label class="btn primary" style="display:inline-block">📄 Cargar PDF registral (uno o varios)<input id="pdfInput" type="file" accept="application/pdf,.pdf" multiple hidden></label>
           <label class="btn secondary" style="display:inline-block">📊 Importar Excel / CSV<input id="excelImport" type="file" accept=".xlsx,.xls,.csv" hidden></label>
           <button class="btn ghost" id="exportJsonBtn">Respaldo JSON</button>
           <label class="btn ghost" style="display:inline-block">Restaurar JSON<input id="importJson" type="file" accept=".json" hidden></label>
@@ -244,8 +259,8 @@
       </div>
       <div class="dropzone" id="pdfDrop">
         <div style="font-size:26px">📄⬆️</div>
-        <div class="big">Arrastre aquí el PDF del estudio de finca / Folio Real</div>
-        <div class="help">Genera el expediente desde el Folio/Matrícula y autocompleta los datos (texto nativo + OCR de respaldo).</div>
+        <div class="big">Arrastre aquí uno o varios PDF del estudio de finca / Folio Real</div>
+        <div class="help">Cada PDF genera su expediente desde el Folio/Matrícula y autocompleta los datos (texto nativo + OCR de respaldo). Los folios duplicados se omiten.</div>
         <div class="progressbar hidden" id="pdfProgWrap"><span id="pdfProg"></span></div>
         <div id="pdfStatus" class="help" style="margin-top:8px"></div>
       </div>
@@ -258,6 +273,7 @@
         <label class="field"><span class="lab">Provincia</span><select id="fProvincia"><option value="">Todas</option></select></label>
         <label class="field"><span class="lab">Cantón</span><select id="fCanton"><option value="">Todos</option></select></label>
         <label class="field"><span class="lab">Distrito</span><select id="fDistrito"><option value="">Todos</option></select></label>
+        <label class="field"><span class="lab">Lugar</span><select id="fLugar"><option value="">Todos</option></select></label>
         <label class="field"><span class="lab">Trámite</span><select id="fTipo"><option value="">Todos</option></select></label>
         <label class="field"><span class="lab">Buscar</span><input id="fSearch" placeholder="Folio, propietario, expediente"></label>
       </div>
@@ -336,13 +352,11 @@
         <div>Precisión: <span class="val" id="gpsAcc">—</span> · Hora: <span class="val" id="gpsTime">—</span></div>
       </div>
       <div class="grid">
-        <label class="field col-3"><span class="lab">Sistema</span><input data-path="levantamiento.sistema" value="CRTM05 (CR-SIRGAS)" readonly></label>
-        <label class="field col-3"><span class="lab">Método</span><select data-path="levantamiento.metodo"><option value="">Seleccione</option><option>RECEPTORES GNSS RTK</option><option>GNSS POST-PROCESO (PPK)</option><option>GPS DE NAVEGACIÓN (APROX.)</option><option>ESTACIÓN TOTAL</option></select></label>
-        <label class="field col-3"><span class="lab">Coordenada Este</span><input data-path="levantamiento.este" inputmode="decimal"></label>
-        <label class="field col-3"><span class="lab">Coordenada Norte</span><input data-path="levantamiento.norte" inputmode="decimal"></label>
-        <label class="field col-3"><span class="lab">Precisión (m)</span><input data-path="levantamiento.precision" readonly></label>
-        <label class="field col-3"><span class="lab">Hora de captura</span><input data-path="levantamiento.capturaHora" readonly></label>
-        <label class="field col-6"><span class="lab">Lat/Lon (WGS84)</span><input data-path="levantamiento.latlon" readonly></label>
+        <label class="field col-4"><span class="lab">Sistema</span><input data-path="levantamiento.sistema" value="CRTM05 (CR-SIRGAS)" readonly></label>
+        <label class="field col-2"><span class="lab">Coordenada Este</span><input data-path="levantamiento.este" inputmode="decimal"></label>
+        <label class="field col-2"><span class="lab">Coordenada Norte</span><input data-path="levantamiento.norte" inputmode="decimal"></label>
+        <label class="field col-2"><span class="lab">Precisión (m)</span><input data-path="levantamiento.precision" readonly></label>
+        <label class="field col-2"><span class="lab">Hora de captura</span><input data-path="levantamiento.capturaHora" readonly></label>
       </div>
       <div class="help">La captura usa el GPS del dispositivo (WGS84) y lo convierte a CRTM05 según la normativa oficial del IGN de Costa Rica.</div>
     </div>
@@ -364,6 +378,14 @@
     </div>
     <div class="notice">Sin límite de cantidad. Cada foto guarda fecha y hora y se imprime a 10 cm × 8 cm en el informe.</div>
     <div class="card"><div class="photo-grid" id="photoGrid"></div><div id="photoEmpty" class="help">Sin fotografías.</div></div>
+    <div class="card">
+      <h3>🔖 Estado del trámite</h3>
+      <div class="notice warn">Al finalizar la toma de datos y fotografías, envíe el trámite a <b>Gestión / Revisión</b>. Saldrá de la base activa y quedará disponible en el módulo Gestión.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn warn" id="toGestionBtn2">🔖 Cambiar estado a Gestión / Revisión</button>
+        <span class="help">Expediente actual: <b id="photosCaseCode">—</b></span>
+      </div>
+    </div>
   </section>
 
   <!-- ============ 5 · INFORME ============ -->
@@ -388,12 +410,24 @@
       </div>
       <div class="help">La vista previa es editable: haga cambios directamente antes de exportar. El PDF se genera con “PDF / Imprimir” (guardar como PDF).</div>
     </div>
+    <div class="notice hidden" id="reportAudit"></div>
     <div class="card"><h3>Vista previa editable</h3><div id="reportPreview" class="rep-editable" contenteditable="true">Pulse “Generar vista previa”.</div></div>
   </section>
 
   <!-- ============ 6 · GESTIÓN ============ -->
   <section class="view" id="view-gestion">
     <div class="section-head"><h3>Gestión / Revisión</h3><div class="actions"><span class="help">Trámites retirados de la base activa para revisión.</span></div></div>
+    <div class="card">
+      <h3>Profesional responsable (encabezado del informe)</h3>
+      <div class="grid">
+        <label class="field col-6"><span class="lab">Nombre completo</span><input id="profName"></label>
+        <label class="field col-3"><span class="lab">Registro / carné</span><input id="profReg"></label>
+        <label class="field col-3"><span class="lab">Título breve</span><input id="profTitle"></label>
+        <label class="field col-4"><span class="lab">Empresa / firma</span><input id="profCompany"></label>
+        <label class="field col-4"><span class="lab">Contacto (pie de página)</span><input id="profContact" style="text-transform:none"></label>
+        <div class="col-4" style="display:flex;align-items:flex-end"><button class="btn primary" id="saveProfileBtn">Guardar perfil</button></div>
+      </div>
+    </div>
     <div class="card" id="auditCard">
       <div class="section-head"><h3>🔍 Auditoría del informe</h3><div class="actions">
         <select id="auditSelect" style="min-width:220px"></select>
@@ -411,54 +445,7 @@
     <div class="card"><div class="case-list" id="gestionList"></div><div id="gestionEmpty" class="help">Sin trámites en gestión.</div></div>
   </section>
 
-  <!-- ============ 7 · PERFIL ============ -->
-  <section class="view" id="view-profile">
-    <div class="section-head"><h3>Perfil profesional e identidad visual</h3></div>
-    <div class="card">
-      <h3>Profesional responsable (encabezado del informe)</h3>
-      <div class="grid">
-        <label class="field col-6"><span class="lab">Nombre completo</span><input id="profName"></label>
-        <label class="field col-3"><span class="lab">Registro / carné</span><input id="profReg"></label>
-        <label class="field col-3"><span class="lab">Título breve</span><input id="profTitle"></label>
-        <label class="field col-6"><span class="lab">Empresa / firma</span><input id="profCompany"></label>
-        <label class="field col-6"><span class="lab">Contacto (pie de página)</span><input id="profContact" style="text-transform:none"></label>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Logos (TOPING · PYME)</h3>
-      <div class="notice">Ya vienen incrustados los logos oficiales. Puede reemplazarlos por versiones de mayor resolución si lo necesita.</div>
-      <div class="grid">
-        <div class="col-6"><div style="font-weight:700;margin-bottom:6px">Logo TOPING</div><div class="logo-preview" id="prevToping"></div><label class="btn small ghost" style="display:inline-block;margin-top:8px">Cambiar<input id="logoToping" type="file" accept="image/*" hidden></label></div>
-        <div class="col-6"><div style="font-weight:700;margin-bottom:6px">Logo PYME</div><div class="logo-preview" id="prevPyme"></div><label class="btn small ghost" style="display:inline-block;margin-top:8px">Cambiar<input id="logoPyme" type="file" accept="image/*" hidden></label></div>
-      </div>
-      <div style="margin-top:12px"><button class="btn primary" id="saveProfileBtn">Guardar perfil</button></div>
-    </div>
-    <div class="card">
-      <h3>Instalar aplicación (teléfono · tablet · computadora)</h3>
-      <div class="notice">Instálela como app nativa para abrirla desde el ícono, a pantalla completa y funcionando sin conexión.</div>
-      <button class="btn primary" id="installBtn2">⬇️ Instalar aplicación</button>
-      <div id="installHint" class="help" style="margin-top:10px"></div>
-      <div class="help" style="margin-top:8px">
-        <b>Android / Chrome (teléfono/tablet/PC):</b> pulse “Instalar aplicación” o el menú ⋮ → “Instalar app / Agregar a pantalla de inicio”.<br>
-        <b>iPhone / iPad (Safari):</b> toque Compartir <b>⬆️</b> → “Agregar a pantalla de inicio”.<br>
-        <b>Windows / macOS (Chrome/Edge):</b> ícono de instalar en la barra de direcciones, o menú → “Instalar TOPING”.
-      </div>
-    </div>
-  </section>
 
-  <!-- ============ 8 · PRUEBAS ============ -->
-  <section class="view" id="view-tests">
-    <div class="section-head"><h3>Pruebas del sistema</h3><div class="actions"><button class="btn primary" id="runTestsBtn">▶ Ejecutar pruebas</button></div></div>
-    <div class="card">
-      <div class="stats" style="margin-bottom:12px">
-        <div class="stat"><b id="tPass">0</b><span>Aprobadas</span></div>
-        <div class="stat"><b id="tFail">0</b><span>Fallidas</span></div>
-        <div class="stat"><b id="tTotal">0</b><span>Total</span></div>
-        <div class="stat"><b id="tPct">—</b><span>Cobertura</span></div>
-      </div>
-      <div id="testResults"></div>
-    </div>
-  </section>
 </main>
 </div>
 
@@ -469,8 +456,6 @@
   <a href="#photos" data-target="photos">📷<br>Fotos</a>
   <a href="#report" data-target="report">📄<br>Informe</a>
   <a href="#gestion" data-target="gestion">🔖<br>Gestión</a>
-  <a href="#profile" data-target="profile">👤<br>Perfil</a>
-  <a href="#tests" data-target="tests">🧪<br>Pruebas</a>
 </div>
 
 <div id="printArea"></div>
@@ -507,7 +492,7 @@ function newState(){
     tramite:{ tipo:'pp', expediente:'', solicitante:'', fechaInspeccion:'', fechaInforme:'' },
     inmueble:{ folioFinca:'', planoCatastrado:'', propietario:'', identificacion:'', areaRegistro:'', usoObservado:'' },
     ubicacion:{ provincia:'', canton:'', distrito:'', localidad:'', direccion:'', tipoAcceso:'' },
-    levantamiento:{ sistema:'CRTM05 (CR-SIRGAS)', metodo:'', este:'', norte:'', precision:'', capturaHora:'', latlon:'' },
+    levantamiento:{ sistema:'CRTM05 (CR-SIRGAS)', este:'', norte:'', precision:'', capturaHora:'' },
     verificacion:[],
     responsable:{ nombre:'', registro:'', email:'', fecha:'' },
     fotos:[],
@@ -588,6 +573,7 @@ function bindInputs(){
 function paintFromState(){
   $$('[data-path]').forEach(el=>{const v=getPath(state,el.dataset.path);el.value=(v==null?'':v);refreshFieldFlag(el);});
   $('#caseCode').textContent=state.tramite.expediente||'CASO NUEVO';
+  const pcc=$('#photosCaseCode'); if(pcc)pcc.textContent=state.tramite.expediente||'CASO NUEVO';
   buildTipoSelectors(); renderVerif(); renderPhotos(); renderGps(); updateBadges(); applyProfileDefaults();
 }
 function markDirty(){dirty=true;$('#saveState').textContent='CAMBIOS SIN GUARDAR';$('#saveBarStatus').textContent='CAMBIOS SIN GUARDAR';updateBadges();}
@@ -696,7 +682,9 @@ function adjustConfidence(fields,native){ if(native)return fields; const f={};Ob
 function cleanFolio(f){return String(f||'').trim().replace(/\s+/g,'');}
 function generateExpediente(tipo,folio){
   const yr=new Date().getFullYear(); const f=cleanFolio(folio); if(!f)return '';
-  if(tipo==='pp') return `MUCAP-P.P-${f}-${yr}`;
+  // Número de finca sin provincia ni derecho: "2-522410-000" -> "522410"
+  const m=f.match(/^\d-0*(\d{4,6})-\d{3}$/); const finca=m?m[1]:f;
+  if(tipo==='pp') return `P.P-MUCAP-${finca}-${yr}`;
   const code=(TRAMITE_TYPES[tipo]||{}).code||'UBI';
   return `${code}-${yr}-${f}`;
 }
@@ -706,6 +694,56 @@ function findCaseByFolio(cases,folio,tipo){
 }
 function findCaseByExpediente(cases,exp){const n=s=>String(s||'').trim().toLowerCase();return cases.find(c=>n(c.tramite&&c.tramite.expediente)===n(exp))||null;}
 
+/* Parseo común de un PDF: texto nativo + OCR de respaldo → campos + folio */
+async function parsePdfFile(file,onProgress){
+  const buf=await file.arrayBuffer(); let native=true,tr;
+  try{tr=await readPdfText(buf.slice(0),onProgress);}catch(e){tr={text:'',pdf:null};}
+  let text=tr.text||'';
+  if(text.replace(/\s/g,'').length<40&&tr.pdf){native=false;try{text=await ocrPdf(tr.pdf,onProgress);}catch(e){/* OCR no disponible */}}
+  let fields=extractFields(text); fields=adjustConfidence(fields,native);
+  const folio=fields['inmueble.folioFinca']?fields['inmueble.folioFinca'].value:extractFolio(text);
+  return {fields,folio,native};
+}
+/* Carga por lotes: crea y guarda un expediente por PDF, omitiendo folios duplicados */
+async function handlePdfFiles(files){
+  const list=[...files].filter(f=>f&&(f.type==='application/pdf'||/\.pdf$/i.test(f.name)));
+  if(!list.length){toast('Seleccione archivo(s) PDF');return;}
+  if(list.length===1){return handlePdfFile(list[0]);}
+  const prog=$('#pdfProg'),wrap=$('#pdfProgWrap'),status=$('#pdfStatus'),sum=$('#pdfSummary');
+  wrap.classList.remove('hidden');
+  const tipo=$('#newTipo').value||'pp';
+  const existing=await dbGetAll('cases');
+  const results=[];
+  for(let i=0;i<list.length;i++){
+    const f=list[i];
+    status.textContent=`PROCESANDO ${i+1}/${list.length}: ${f.name.toUpperCase()}…`;
+    prog.style.width=Math.round(i/list.length*100)+'%';
+    try{
+      const {fields,folio,native}=await parsePdfFile(f,()=>{});
+      if(!folio){results.push({name:f.name,ok:false,msg:'SIN FOLIO/MATRÍCULA DETECTABLE'});continue;}
+      if(findCaseByFolio(existing,folio,tipo)){results.push({name:f.name,ok:false,msg:'FOLIO DUPLICADO: '+folio});continue;}
+      const s=newState(); s.tramite.tipo=tipo;
+      Object.entries(fields).forEach(([p,info])=>{if(info.value)setPath(s,p,info.value);});
+      s.extraction={}; Object.entries(fields).forEach(([p,info])=>{if(info.value)s.extraction[p]={source:'pdf',confidence:info.confidence};});
+      s.inmueble.folioFinca=folio;
+      s.tramite.expediente=generateExpediente(tipo,folio);
+      s.extraction['tramite.expediente']={source:'pdf',confidence:0.9};
+      s.tramite.fechaInspeccion=todayISO();
+      s.meta.id=uid(); s.meta.createdAt=Date.now(); s.meta.updatedAt=Date.now(); s.meta.status='ASIGNADO';
+      applyUppercase(s);
+      await dbPut('cases',s); existing.push(s);
+      results.push({name:f.name,ok:true,msg:s.tramite.expediente+(native?'':' (OCR)')});
+    }catch(err){results.push({name:f.name,ok:false,msg:'ERROR: '+err.message});}
+  }
+  prog.style.width='100%'; status.textContent='LOTE COMPLETADO.';
+  const okN=results.filter(r=>r.ok).length;
+  sum.className='notice '+(okN?'ok':'danger');
+  sum.innerHTML=`📦 CARGA MÚLTIPLE: <b>${okN}</b> de <b>${list.length}</b> expediente(s) creado(s).<br>`+
+    results.map(r=>`${r.ok?'✅':'⚠️'} ${esc(r.name.toUpperCase())} — ${esc(r.msg)}`).join('<br>');
+  sum.classList.remove('hidden');
+  setTimeout(()=>wrap.classList.add('hidden'),700);
+  refreshLists(); toast(`Lote: ${okN}/${list.length} creado(s)`);
+}
 async function handlePdfFile(file){
   const prog=$('#pdfProg'),wrap=$('#pdfProgWrap'),status=$('#pdfStatus');
   wrap.classList.remove('hidden');prog.style.width='5%';status.textContent='LEYENDO PDF…';
@@ -769,7 +807,6 @@ function captureCoords(){
     state.levantamiento.norte=String(cr.N);
     state.levantamiento.precision=String(Math.round(accuracy*10)/10);
     state.levantamiento.capturaHora=new Date().toLocaleString('es-CR');
-    state.levantamiento.latlon=latitude.toFixed(6)+', '+longitude.toFixed(6);
     paintFromState(); markDirty(); toast('Coordenadas CRTM05 capturadas');
   },err=>{toast('No se pudo obtener la ubicación: '+err.message);},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
 }
@@ -786,7 +823,19 @@ function renderVerif(){
       <td><button class="btn small danger" data-vdel="${i}">✕</button></td>`;
     tb.appendChild(tr);
   });
-  $$('#verifBody input:not([readonly])').forEach(inp=>inp.addEventListener('input',()=>{const i=+inp.dataset.vi,k=inp.dataset.vk;state.verificacion[i][k]=inp.value;if(k==='plano'||k==='sitio'){const p=parseFloat(state.verificacion[i].plano),s=parseFloat(state.verificacion[i].sitio);state.verificacion[i].dif=(!isNaN(p)&&!isNaN(s))?((s-p)>0?'+':'')+(s-p).toFixed(2):'';renderVerif();}markDirty();}));
+  /* Sin re-render al digitar: solo se actualiza la celda de diferencia (evita saltos y pérdida de foco) */
+  $$('#verifBody input:not([readonly])').forEach(inp=>inp.addEventListener('input',()=>{
+    const i=+inp.dataset.vi,k=inp.dataset.vk;
+    state.verificacion[i][k]=inp.value;
+    if(k==='plano'||k==='sitio'){
+      const p=parseFloat(String(state.verificacion[i].plano).replace(',','.'));
+      const s=parseFloat(String(state.verificacion[i].sitio).replace(',','.'));
+      state.verificacion[i].dif=(!isNaN(p)&&!isNaN(s))?(((s-p)>0?'+':'')+(s-p).toFixed(2)):'';
+      const difInput=inp.closest('tr').querySelector('input[readonly]');
+      if(difInput)difInput.value=state.verificacion[i].dif;
+    }
+    markDirty();
+  }));
   $$('#verifBody [data-vdel]').forEach(b=>b.addEventListener('click',()=>{state.verificacion.splice(+b.dataset.vdel,1);renderVerif();markDirty();}));
 }
 function addVerifRow(r){state.verificacion.push(r||{elemento:'',plano:'',sitio:'',dif:''});renderVerif();markDirty();}
@@ -836,7 +885,7 @@ function onTipoChange(){
   const folio=state.inmueble.folioFinca;
   if(folio){ state.tramite.expediente=generateExpediente(state.tramite.tipo,folio); }
   const tt=TRAMITE_TYPES[state.tramite.tipo]||TRAMITE_TYPES.general;
-  $('#nomenHelp').textContent = state.tramite.tipo==='pp' ? 'Formato: MUCAP-P.P-FOLIO-AÑO' : ('Formato: '+tt.code+'-AÑO-FOLIO');
+  $('#nomenHelp').textContent = state.tramite.tipo==='pp' ? 'Formato: P.P-MUCAP-FINCA-AÑO' : ('Formato: '+tt.code+'-AÑO-FOLIO');
   $('#expSubtitle').textContent='Tipo: '+tt.label+'. Campos obligatorios propios de este trámite.';
   paintFromState();
 }
@@ -868,9 +917,9 @@ function migrateRecord(c){
   s.fotos=Array.isArray(c.fotos)?c.fotos:[];
   s.extraction=c.extraction||{}; s._legacy=c._legacy||{};
   // Compatibilidad: campos eliminados en versiones anteriores
-  const legacyKeys=[['tramite','fechaSolicitud'],['inmueble','planoConsulta'],['inmueble','origenDato'],['inmueble','fechaConsultaRegistral'],['levantamiento','finalidad'],['general','declarationDate']];
+  const legacyKeys=[['tramite','fechaSolicitud'],['inmueble','planoConsulta'],['inmueble','origenDato'],['inmueble','fechaConsultaRegistral'],['levantamiento','finalidad'],['levantamiento','metodo'],['levantamiento','latlon'],['general','declarationDate']];
   legacyKeys.forEach(([g,k])=>{if(c[g]&&c[g][k]!=null&&c[g][k]!=='')s._legacy[g+'.'+k]=c[g][k];});
-  const removed=[['tramite','fechaSolicitud'],['inmueble','planoConsulta'],['inmueble','origenDato'],['inmueble','fechaConsultaRegistral'],['levantamiento','finalidad']];
+  const removed=[['tramite','fechaSolicitud'],['inmueble','planoConsulta'],['inmueble','origenDato'],['inmueble','fechaConsultaRegistral'],['levantamiento','finalidad'],['levantamiento','metodo'],['levantamiento','latlon']];
   removed.forEach(([g,k])=>{if(s[g])delete s[g][k];});
   return s;
 }
@@ -894,11 +943,13 @@ async function renderCaseList(){
   fill('#fProvincia',distinct(active,'ubicacion.provincia'),'Todas');
   fill('#fCanton',distinct(active,'ubicacion.canton'),'Todos');
   fill('#fDistrito',distinct(active,'ubicacion.distrito'),'Todos');
-  const fp=$('#fProvincia').value,fc=$('#fCanton').value,fd=$('#fDistrito').value,ft=$('#fTipo').value,fs=($('#fSearch').value||'').toUpperCase();
+  fill('#fLugar',distinct(active,'ubicacion.localidad'),'Todos');
+  const fp=$('#fProvincia').value,fc=$('#fCanton').value,fd=$('#fDistrito').value,fl=$('#fLugar').value,ft=$('#fTipo').value,fs=($('#fSearch').value||'').toUpperCase();
   const filtered=active.filter(c=>{
     if(fp&&(c.ubicacion.provincia||'')!==fp)return false;
     if(fc&&(c.ubicacion.canton||'')!==fc)return false;
     if(fd&&(c.ubicacion.distrito||'')!==fd)return false;
+    if(fl&&(c.ubicacion.localidad||'')!==fl)return false;
     if(ft&&(c.tramite.tipo||'')!==ft)return false;
     if(fs){const blob=[c.tramite.expediente,c.inmueble.folioFinca,c.inmueble.propietario].join(' ').toUpperCase();if(!blob.includes(fs))return false;}
     return true;
@@ -919,7 +970,7 @@ function caseRow(c,isGestion){
   const estado=c.meta.estado==='gestion'?'<span class="badge-estado gestion">GESTIÓN</span>':'<span class="badge-estado">ACTIVO</span>';
   row.innerHTML=`<div><b>${esc(c.tramite.expediente||c.meta.id)}</b> ${estado}<span class="badge-tipo">${esc(tipoLabel(c.tramite.tipo))}</span>
     <small>FOLIO ${esc(c.inmueble.folioFinca||'—')} · ${esc(c.inmueble.propietario||'SIN PROPIETARIO')}</small>
-    <small>${esc([c.ubicacion.provincia,c.ubicacion.canton,c.ubicacion.distrito].filter(Boolean).join(' · ')||'—')}</small></div>
+    <small>${esc([c.ubicacion.provincia,c.ubicacion.canton,c.ubicacion.distrito,c.ubicacion.localidad].filter(Boolean).join(' · ')||'—')}</small></div>
     <div class="case-actions">
       <button class="btn tiny primary" data-open="${esc(c.meta.id)}">Abrir</button>
       ${isGestion?`<button class="btn tiny" data-pdf="${esc(c.meta.id)}">PDF</button><button class="btn tiny warn" data-mail="${esc(c.meta.id)}">Correo</button><button class="btn tiny ghost" data-back="${esc(c.meta.id)}">Reactivar</button>`
@@ -978,9 +1029,13 @@ function applySettings(){
   $('#hdrPyme').innerHTML=`<img src="${settings.logoPyme}" alt="PYME">`;
   $('#headerProf').textContent=`${settings.profName} — ${settings.profReg}`;
   $('#profName').value=settings.profName;$('#profReg').value=settings.profReg;$('#profTitle').value=settings.profTitle||'';$('#profCompany').value=settings.profCompany||'';$('#profContact').value=settings.profContact||'';
-  $('#prevToping').innerHTML=`<img src="${settings.logoToping}">`;$('#prevPyme').innerHTML=`<img src="${settings.logoPyme}">`;
+  const pt=$('#prevToping'); if(pt)pt.innerHTML=`<img src="${settings.logoToping}">`;
+  const pp=$('#prevPyme'); if(pp)pp.innerHTML=`<img src="${settings.logoPyme}">`;
 }
-function applyProfileDefaults(){if(!state.responsable.nombre){const e=$('[data-path="responsable.nombre"]');if(e)e.value=settings.profName;}if(!state.responsable.registro){const e=$('[data-path="responsable.registro"]');if(e)e.value=settings.profReg;}}
+function applyProfileDefaults(){
+  if(!state.responsable.nombre){state.responsable.nombre=settings.profName;const e=$('[data-path="responsable.nombre"]');if(e)e.value=settings.profName;}
+  if(!state.responsable.registro){state.responsable.registro=settings.profReg;const e=$('[data-path="responsable.registro"]');if(e)e.value=settings.profReg;}
+}
 async function saveProfile(){settings.profName=($('#profName').value||'').toUpperCase()||settings.profName;settings.profReg=$('#profReg').value;settings.profTitle=($('#profTitle').value||'').toUpperCase();settings.profCompany=$('#profCompany').value;settings.profContact=$('#profContact').value;await dbPut('kv',{k:'settings',v:settings});applySettings();toast('Perfil guardado');}
 function uploadLogo(which,file){const r=new FileReader();r.onload=async e=>{settings[which==='toping'?'logoToping':'logoPyme']=e.target.result;await dbPut('kv',{k:'settings',v:settings});applySettings();toast('Logo actualizado');};r.readAsDataURL(file);}
 
@@ -989,8 +1044,14 @@ function reportHead(){
   return `<div class="print-head">
     <div class="ph-left"><img class="toping" src="${settings.logoToping}"><div class="ph-prof"><b>${esc(settings.profName)}</b><br>${esc(settings.profTitle||'')} · REG. ${esc(settings.profReg)}<br>${esc(settings.profCompany||'')}</div></div>
     <img class="pyme" src="${settings.logoPyme}">
-  </div>
-  <div class="print-foot"><span>${esc(settings.profCompany||'TOPING · PYME')}${settings.profContact?(' · '+esc(settings.profContact)):''}</span><span>DOCUMENTO INFORMATIVO NO TÉCNICO</span></div>`;
+  </div>`;
+}
+function reportFoot(){
+  return `<div class="print-foot"><span>${esc(settings.profCompany||'TOPING · PYME')}${settings.profContact?(' · '+esc(settings.profContact)):''}</span><span>DOCUMENTO INFORMATIVO NO TÉCNICO</span></div>`;
+}
+/* Envuelve el informe: thead repite el encabezado (logos) en cada página impresa */
+function wrapReport(body){
+  return `<table class="rep-wrap"><thead><tr><th>${reportHead()}</th></tr></thead><tbody><tr><td>${body}${reportFoot()}</td></tr></tbody></table>`;
 }
 function kvRow(a,av,b,bv){return `<tr><td><b>${esc(a)}</b></td><td>${esc(av||'SIN DATOS')}</td><td><b>${esc(b)}</b></td><td>${esc(bv||'SIN DATOS')}</td></tr>`;}
 function buildReportHTML(st){
@@ -998,8 +1059,8 @@ function buildReportHTML(st){
   const tt=TRAMITE_TYPES[t.tipo]||TRAMITE_TYPES.general;
   const verif=(st.verificacion||[]).map(v=>`<tr><td>${esc(v.elemento)}</td><td>${esc(v.plano)}</td><td>${esc(v.sitio)}</td><td>${esc(v.dif)}</td></tr>`).join('')||'<tr><td colspan="4">SIN VERIFICACIONES REGISTRADAS.</td></tr>';
   const fotos=(st.fotos||[]).map((p,n)=>`<figure><img src="${p.dataUrl}"><figcaption>FOTOGRAFÍA ${n+1}. ${esc(p.categoria||'VISTA GENERAL')}${p.descripcion?(' — '+esc(p.descripcion)):''}<br>${esc(p.capturedAtLabel||'')}</figcaption></figure>`).join('');
-  return `${reportHead()}
-  <div class="rep-title"><h1>${esc(tt.title)}</h1><p>EXPEDIENTE ${esc(t.expediente||'')} · ${esc(tt.label)}</p></div>
+  return wrapReport(`
+  <div class="rep-title"><p class="rt-co">${esc(settings.profCompany||'TOPING · PYME')}</p><h1>${esc(tt.title)}</h1><p>EXPEDIENTE ${esc(t.expediente||'')} · ${esc(tt.label)}</p></div>
   <div class="rep-sec"><h2>1. Datos generales del trámite</h2><table><tbody>
     ${kvRow('EXPEDIENTE / TRÁMITE',t.expediente,'TIPO DE INFORME',tt.label)}
     ${kvRow('FECHA DE INSPECCIÓN',fmtDate(t.fechaInspeccion),'FECHA DEL INFORME',fmtDate(t.fechaInforme))}
@@ -1016,26 +1077,37 @@ function buildReportHTML(st){
     ${kvRow('DIRECCIÓN EXACTA',u.direccion,'TIPO DE ACCESO',u.tipoAcceso)}
   </tbody></table></div>
   <div class="rep-sec"><h2>4. Levantamiento y verificación (CRTM05 · CR-SIRGAS)</h2><table><tbody>
-    ${kvRow('MÉTODO',l.metodo,'SISTEMA',l.sistema)}
     ${kvRow('COORDENADA ESTE',l.este,'COORDENADA NORTE',l.norte)}
     ${kvRow('PRECISIÓN (M)',l.precision,'HORA DE CAPTURA',l.capturaHora)}
   </tbody></table>
   <table style="margin-top:6px"><thead><tr><th>ELEMENTO VERIFICADO</th><th>SEGÚN PLANO (M)</th><th>EN SITIO (M)</th><th>DIFERENCIA (M)</th></tr></thead><tbody>${verif}</tbody></table></div>
-  ${fotos?`<div class="rep-sec"><h2>5. Registro fotográfico</h2><div class="rep-photos">${fotos}</div></div>`:''}
-  <div class="rep-sec"><div class="sign-row"><div class="sign-box">${esc(r.nombre||settings.profName)}<br>${esc(r.registro||settings.profReg)}<br>PROFESIONAL RESPONSABLE</div><div class="sign-box">FECHA: ${esc(fmtDate(r.fecha)||fmtDate(todayISO()))}</div></div></div>`;
+  ${fotos?`<div class="rep-sec rep-sec-photos"><h2>5. Registro fotográfico</h2><div class="rep-photos">${fotos}</div></div>`:''}
+  <div class="rep-sec"><div class="sign-row"><div class="sign-box">${esc(r.nombre||settings.profName)}<br>${esc(r.registro||settings.profReg)}<br>PROFESIONAL RESPONSABLE</div><div class="sign-box">FECHA: ${esc(fmtDate(r.fecha)||fmtDate(todayISO()))}</div></div></div>`);
 }
 function buildReport(){
   const html=buildReportHTML(state);
   $('#printArea').innerHTML=html;
   $('#reportPreview').innerHTML=html;  // los estilos #reportPreview controlan tamaño de logos y fotos en pantalla
+  // Verificación de completitud ("el informe debe estar lleno")
+  const ra=$('#reportAudit');
+  if(ra){
+    const a=auditReport(state);
+    ra.classList.remove('hidden');
+    ra.className='notice '+(a.complete?'ok':(a.errors?'danger':'warn'));
+    ra.textContent=a.complete?'✅ INFORME COMPLETO ('+a.percent+'%). Listo para exportar.'
+      :(a.errors?('⚠️ INFORME INCOMPLETO: '+a.errors+' campo(s) obligatorio(s) sin llenar y '+a.warnings+' advertencia(s). Complete los datos o revise la Auditoría en Gestión.')
+      :('INFORME CON '+a.warnings+' ADVERTENCIA(S). Completitud '+a.percent+'%.'));
+  }
 }
 function syncPreviewToPrint(){
   const pv=$('#reportPreview');
   if(pv&&pv.innerText.trim().length>20){
-    // Evita encabezados duplicados: quita el head/foot de la copia editada y antepone uno limpio
+    // Evita encabezados duplicados: quita head/foot de la copia editada, desenvuelve y re-envuelve limpio
     const tmp=document.createElement('div'); tmp.innerHTML=pv.innerHTML;
     tmp.querySelectorAll('.print-head,.print-foot').forEach(n=>n.remove());
-    $('#printArea').innerHTML=reportHead()+tmp.innerHTML;
+    const inner=tmp.querySelector('.rep-wrap>tbody>tr>td');
+    const body=inner?inner.innerHTML:tmp.innerHTML;
+    $('#printArea').innerHTML=wrapReport(body);
   } else { buildReport(); }
 }
 function downloadHtml(){buildReport();const html='<!doctype html><meta charset="utf-8"><title>'+esc(state.tramite.expediente||'informe')+'</title>'+'<div>'+$('#reportPreview').innerHTML+'</div>';const b=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(state.tramite.expediente||'informe')+'.html';a.click();toast('HTML editable descargado');}
@@ -1104,17 +1176,15 @@ let deferredPrompt=null;
 function isiOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent);}
 function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
 function setupInstall(){
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden');$('#installHint').textContent='Listo para instalar en este dispositivo.';});
-  window.addEventListener('appinstalled',()=>{deferredPrompt=null;$('#installBtn').classList.add('hidden');$('#installHint').textContent='✅ Aplicación instalada.';toast('Aplicación instalada');});
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden');});
+  window.addEventListener('appinstalled',()=>{deferredPrompt=null;$('#installBtn').classList.add('hidden');toast('Aplicación instalada');});
   const doInstall=async()=>{
     if(deferredPrompt){deferredPrompt.prompt();const c=await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden');toast(c&&c.outcome==='accepted'?'Instalando…':'Instalación cancelada');return;}
     if(isStandalone()){toast('La aplicación ya está instalada');return;}
-    if(isiOS()){$('#installHint').innerHTML='En iPhone/iPad: toque <b>Compartir ⬆️</b> y luego <b>“Agregar a pantalla de inicio”</b>.';showView('profile');toast('iOS: use Compartir → Agregar a pantalla de inicio');return;}
-    $('#installHint').textContent='Use el menú del navegador → “Instalar app / Agregar a pantalla de inicio”.';showView('profile');toast('Use el menú del navegador para instalar');
+    if(isiOS()){toast('iPhone/iPad: toque Compartir ⬆️ → “Agregar a pantalla de inicio”');return;}
+    toast('Use el menú del navegador → “Instalar app / Agregar a pantalla de inicio”');
   };
-  $('#installBtn').onclick=doInstall; $('#installBtn2').onclick=doInstall;
-  if(isStandalone()){$('#installHint').textContent='✅ Ejecutándose como aplicación instalada.';}
-  else if(isiOS()){$('#installHint').innerHTML='En iPhone/iPad (Safari): toque <b>Compartir ⬆️</b> → <b>“Agregar a pantalla de inicio”</b>.';}
+  $('#installBtn').onclick=doInstall;
 }
 
 /* ---------- Navegación ---------- */
@@ -1139,13 +1209,13 @@ function runTests(){
   add('Conversión palabras→número',()=>{assert(areaWordsToNumber('DOSCIENTOS CINCUENTA CON CINCUENTA')===250.5,'250.5');assert(parseSpanishNumber('MIL DOSCIENTOS')===1200,'1200');assert(areaWordsToNumber('TRESCIENTOS')===300,'300');});
   add('Informe registral del Registro Nacional (real)',()=>{const f=extractFields(SAMPLE_RN);assert(f['inmueble.folioFinca'].value==='2-522410-000','matrícula compuesta');assert(f['inmueble.areaRegistro'].value==='500','mide en letras');assert(f['ubicacion.canton'].value==='SAN CARLOS','cantón sin número');assert(f['ubicacion.distrito'].value==='CUTRIS','distrito');assert(f['inmueble.planoCatastrado'].value==='A-1782472-2014','plano');assert(f['inmueble.identificacion'].value==='3-0447-0598','cédula identidad');});
   add('Extracción parcial',()=>{const f=extractFields(SAMPLE_PARTIAL);assert(f['inmueble.folioFinca'].value==='1-334455-000','folio');assert(!f['inmueble.planoCatastrado'],'sin plano');assert(!f['inmueble.propietario'],'sin propietario');assert(!f['inmueble.areaRegistro'],'sin area');assert(f['ubicacion.provincia'],'con provincia');});
-  add('Folio duplicado + nomenclatura PP',()=>{const exp=generateExpediente('pp','7-90252-000');assert(exp==='MUCAP-P.P-7-90252-000-'+new Date().getFullYear(),'nomenclatura '+exp);const store=[{meta:{id:'x'},tramite:{tipo:'pp',expediente:exp},inmueble:{folioFinca:'7-90252-000'}}];assert(findCaseByFolio(store,'7-90252-000','pp')!==null,'dup');assert(findCaseByFolio(store,' 7-90252-000 ','pp')!==null,'dup espacios');assert(findCaseByFolio(store,'7-90252-000','avaluo')===null,'otro tipo no dup');assert(findCaseByFolio(store,'1-000-000','pp')===null,'sin falso positivo');});
+  add('Folio duplicado + nomenclatura PP',()=>{const exp=generateExpediente('pp','7-90252-000');assert(exp==='P.P-MUCAP-90252-'+new Date().getFullYear(),'nomenclatura '+exp);const store=[{meta:{id:'x'},tramite:{tipo:'pp',expediente:exp},inmueble:{folioFinca:'7-90252-000'}}];assert(findCaseByFolio(store,'7-90252-000','pp')!==null,'dup');assert(findCaseByFolio(store,' 7-90252-000 ','pp')!==null,'dup espacios');assert(findCaseByFolio(store,'7-90252-000','avaluo')===null,'otro tipo no dup');assert(findCaseByFolio(store,'1-000-000','pp')===null,'sin falso positivo');});
   add('Cambio de estado a Gestión',()=>{const s=newState();s.meta.estado='activo';s.meta.estado='gestion';assert(s.meta.estado==='gestion','estado');const all=[{meta:{estado:'activo'}},{meta:{estado:'gestion'}}];assert(all.filter(c=>c.meta.estado!=='gestion').length===1,'activos');assert(all.filter(c=>c.meta.estado==='gestion').length===1,'gestion');});
   add('CRTM05 dentro de rango CR',()=>{const c=wgs84ToCRTM05(10.0,-84.0);assert(Math.abs(c.E-500000)<1,'E en meridiano central ~500000: '+c.E);assert(c.N>1100000&&c.N<1120000,'N ~1.1M: '+c.N);});
-  add('Generación del informe (por tipo, logos, mayúsculas)',()=>{const st=newState();st.tramite.tipo='pp';st.tramite.expediente='MUCAP-P.P-7-90252-000-2026';st.inmueble.folioFinca='7-90252-000';st.ubicacion.provincia='LIMÓN';st.verificacion=[{elemento:'LINDERO ESTE',plano:'12.00',sitio:'12.15',dif:'+0.15'}];const h=buildReportHTML(st);assert(h.includes('INFORME DE PUESTA EN POSESIÓN'),'titulo PP');assert(h.includes('7-90252-000'),'folio');assert(h.includes('4. Levantamiento y verificación'),'lev unificado');assert(h.includes('IT-30674'),'encabezado prof');assert(/class="toping"/.test(h)&&/class="pyme"/.test(h),'logos TOPING+PYME');assert(!/finalidad/i.test(h),'sin finalidad');});
+  add('Generación del informe (por tipo, logos, mayúsculas)',()=>{const st=newState();st.tramite.tipo='pp';st.tramite.expediente='P.P-MUCAP-90252-2026';st.inmueble.folioFinca='7-90252-000';st.ubicacion.provincia='LIMÓN';st.verificacion=[{elemento:'LINDERO ESTE',plano:'12.00',sitio:'12.15',dif:'+0.15'}];const h=buildReportHTML(st);assert(h.includes('INFORME DE PUESTA EN POSESIÓN'),'titulo PP');assert(h.includes('7-90252-000'),'folio');assert(h.includes('4. Levantamiento y verificación'),'lev unificado');assert(h.includes('IT-30674'),'encabezado prof');assert(/class="toping"/.test(h)&&/class="pyme"/.test(h),'logos TOPING+PYME');assert(!/finalidad/i.test(h),'sin finalidad');});
   add('Auditoría detecta informe incompleto y completo',()=>{
     const vacio=newState(); const a1=auditReport(vacio); assert(a1.errors>0,'vacío debe tener errores'); assert(!a1.complete,'vacío no completo');
-    const full=newState(); full.tramite.tipo='pp'; full.tramite.expediente='MUCAP-P.P-7-1-0-2026'; full.tramite.fechaInspeccion='2026-08-03';
+    const full=newState(); full.tramite.tipo='pp'; full.tramite.expediente='P.P-MUCAP-71-2026'; full.tramite.fechaInspeccion='2026-08-03';
     full.inmueble.folioFinca='7-1-0'; full.inmueble.propietario='X'; full.inmueble.areaRegistro='250.5'; full.inmueble.planoCatastrado='L-1-2';
     full.ubicacion.provincia='LIMÓN'; full.ubicacion.canton='SIQUIRRES'; full.ubicacion.distrito='SIQUIRRES'; full.ubicacion.direccion='DE LA ESCUELA';
     full.levantamiento.este='500000'; full.levantamiento.norte='1100000'; full.levantamiento.precision='3';
@@ -1170,22 +1240,29 @@ function init(){
   $('#saveBtn').onclick=()=>saveCase();$('#saveTopBtn').onclick=()=>saveCase();
   $('#validateBtn').onclick=()=>{const e=validate();toast(e.length?(e.length+' campo(s) pendiente(s)'):'Todo válido');};
   $('#toGestionBtn').onclick=toGestion;
+  $('#toGestionBtn2').onclick=toGestion;
   $('#newBtn').onclick=()=>{if(dirty&&!confirm('Hay cambios sin guardar. ¿Nuevo expediente?'))return;state=newState();paintFromState();onTipoChange();$('#pdfSummary')&&$('#pdfSummary').classList.add('hidden');toast('Nuevo expediente');showView('expediente');};
-  $('#pdfInput').onchange=e=>{if(e.target.files[0])handlePdfFile(e.target.files[0]);e.target.value='';};
-  const dz=$('#pdfDrop');['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));dz.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')handlePdfFile(f);else toast('Suelte un PDF');});
+  $('#pdfInput').onchange=e=>{if(e.target.files.length)handlePdfFiles(e.target.files);e.target.value='';};
+  const dz=$('#pdfDrop');['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));dz.addEventListener('drop',e=>{if(e.dataTransfer.files.length)handlePdfFiles(e.dataTransfer.files);else toast('Suelte archivo(s) PDF');});
   $('#gpsBtn').onclick=captureCoords;
   $('#addVerifBtn').onclick=()=>addVerifRow();
   $('#photoInput').onchange=e=>{addPhotos(e.target.files);e.target.value='';};
   $('#buildReportBtn').onclick=()=>{buildReport();toast('Vista previa generada (editable)');};
-  $('#printReportBtn').onclick=()=>{syncPreviewToPrint();setTimeout(()=>window.print(),150);};
+  $('#printReportBtn').onclick=()=>{
+    const a=auditReport(state);
+    if(a.errors>0 && !confirm('El informe tiene '+a.errors+' campo(s) obligatorio(s) sin llenar. ¿Exportar de todas formas?')) return;
+    syncPreviewToPrint();setTimeout(()=>window.print(),150);
+  };
   $('#downloadHtmlBtn').onclick=downloadHtml;
   $('#emailBtn').onclick=()=>emailReport(state.responsable.email||'');
   $('#emailTopingBtn').onclick=()=>emailReport('info@topingcr.com');
   $('#excelImport').onchange=e=>{if(e.target.files[0])importSpreadsheet(e.target.files[0]);e.target.value='';};
   $('#exportJsonBtn').onclick=exportJson;$('#importJson').onchange=e=>{if(e.target.files[0])importJsonFile(e.target.files[0]);e.target.value='';};
-  ['#fProvincia','#fCanton','#fDistrito','#fTipo'].forEach(s=>$(s).addEventListener('change',renderCaseList));$('#fSearch').addEventListener('input',renderCaseList);
-  $('#saveProfileBtn').onclick=saveProfile;$('#logoToping').onchange=e=>{if(e.target.files[0])uploadLogo('toping',e.target.files[0]);};$('#logoPyme').onchange=e=>{if(e.target.files[0])uploadLogo('pyme',e.target.files[0]);};
-  $('#runTestsBtn').onclick=runTests;
+  ['#fProvincia','#fCanton','#fDistrito','#fLugar','#fTipo'].forEach(s=>$(s).addEventListener('change',renderCaseList));$('#fSearch').addEventListener('input',renderCaseList);
+  $('#saveProfileBtn').onclick=saveProfile;
+  const lt=$('#logoToping'); if(lt)lt.onchange=e=>{if(e.target.files[0])uploadLogo('toping',e.target.files[0]);};
+  const lp=$('#logoPyme'); if(lp)lp.onchange=e=>{if(e.target.files[0])uploadLogo('pyme',e.target.files[0]);};
+  const rt=$('#runTestsBtn'); if(rt)rt.onclick=runTests;
   $('#auditBtn').onclick=runAudit;
   setupInstall();
   if(!state.verificacion.length)state.verificacion=[{elemento:'LINDERO ESTE',plano:'',sitio:'',dif:''},{elemento:'REFERENCIA A ESQUINA',plano:'',sitio:'',dif:''},{elemento:'ANCHO DE CALLE PÚBLICA',plano:'',sitio:'',dif:''}];

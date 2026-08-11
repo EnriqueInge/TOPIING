@@ -77,7 +77,7 @@ test('Informe registral del Registro Nacional (documento real)', () => {
   assert(/VERONICA VIVIANA DURAN ALVARADO/.test(f['inmueble.propietario'].value), 'propietario');
   assert(f['inmueble.identificacion'].value === '3-0447-0598', 'cédula identidad');
   assert(/TERRENO PARA CONSTRUIR/.test(f['inmueble.usoObservado'].value), 'naturaleza');
-  assert(ctx.generateExpediente('pp', f['inmueble.folioFinca'].value) === 'MUCAP-P.P-2-522410-000-' + YR, 'nomenclatura desde matrícula');
+  assert(ctx.generateExpediente('pp', f['inmueble.folioFinca'].value) === 'P.P-MUCAP-522410-' + YR, 'nomenclatura desde matrícula');
 });
 
 test('Extracción parcial: faltantes quedan sin detectar', () => {
@@ -89,9 +89,9 @@ test('Extracción parcial: faltantes quedan sin detectar', () => {
   assert(f['ubicacion.provincia'], 'con provincia');
 });
 
-test('Folio duplicado + nomenclatura MUCAP-P.P', () => {
+test('Folio duplicado + nomenclatura P.P-MUCAP', () => {
   const exp = ctx.generateExpediente('pp', '7-90252-000');
-  assert(exp === 'MUCAP-P.P-7-90252-000-' + YR, 'nomenclatura: ' + exp);
+  assert(exp === 'P.P-MUCAP-90252-' + YR, 'nomenclatura: ' + exp);
   const store = [{ meta: { id: 'x' }, tramite: { tipo: 'pp', expediente: exp }, inmueble: { folioFinca: '7-90252-000' } }];
   assert(ctx.findCaseByFolio(store, '7-90252-000', 'pp') !== null, 'duplicado exacto');
   assert(ctx.findCaseByFolio(store, ' 7-90252-000 ', 'pp') !== null, 'duplicado con espacios');
@@ -116,7 +116,7 @@ test('Coordenadas CRTM05 dentro de rango de Costa Rica', () => {
 
 test('Generación del informe por tipo (logos, encabezado, sin finalidad)', () => {
   const st = ctx.newState();
-  st.tramite.tipo = 'pp'; st.tramite.expediente = 'MUCAP-P.P-7-90252-000-' + YR;
+  st.tramite.tipo = 'pp'; st.tramite.expediente = 'P.P-MUCAP-90252-' + YR;
   st.inmueble.folioFinca = '7-90252-000'; st.ubicacion.provincia = 'LIMÓN';
   st.verificacion = [{ elemento: 'LINDERO ESTE', plano: '12.00', sitio: '12.15', dif: '+0.15' }];
   const h = ctx.buildReportHTML(st);
@@ -135,7 +135,7 @@ test('Auditoría: detecta incompleto y completo', () => {
   const a1 = ctx.auditReport(ctx.newState());
   assert(a1.errors > 0 && !a1.complete, 'vacío incompleto');
   const full = ctx.newState();
-  full.tramite.tipo = 'pp'; full.tramite.expediente = 'MUCAP-P.P-7-1-0-' + YR; full.tramite.fechaInspeccion = '2026-08-03';
+  full.tramite.tipo = 'pp'; full.tramite.expediente = 'P.P-MUCAP-71-' + YR; full.tramite.fechaInspeccion = '2026-08-03';
   full.inmueble.folioFinca = '7-1-0'; full.inmueble.propietario = 'X'; full.inmueble.areaRegistro = '250.5'; full.inmueble.planoCatastrado = 'L-1-2';
   full.ubicacion.provincia = 'LIMÓN'; full.ubicacion.canton = 'SIQUIRRES'; full.ubicacion.distrito = 'SIQUIRRES'; full.ubicacion.direccion = 'DE LA ESCUELA';
   full.levantamiento.este = '500000'; full.levantamiento.norte = '1100000'; full.levantamiento.precision = '3';

@@ -8,20 +8,18 @@ Plataforma web (una sola página, **offline-first e instalable**) para la **toma
 
 ## Flujo y módulos
 
-1. **Base local (punto de entrada)** — carga de **PDF** y **Excel/CSV**, y organización de los expedientes con filtros por **Provincia, Cantón, Distrito y Trámite** (+ búsqueda). Respaldo/restauración JSON.
+1. **Base local (punto de entrada)** — carga de **PDF** y **Excel/CSV**, y organización de los expedientes con filtros por **Provincia, Cantón, Distrito, Lugar y Trámite** (+ búsqueda); permite cargar **uno o varios PDF** a la vez. Respaldo/restauración JSON.
 2. **Expediente** — formulario unificado con secciones colapsables **A** (datos del trámite), **B** (inmueble) y **C** (ubicación) y una única barra de guardado.
 3. **Levantamiento y verificación** (unificado) — captura de **coordenadas oficiales CRTM05 · CR-SIRGAS** (botón GPS con conversión desde WGS84, precisión y hora), y tabla de verificación de dimensiones.
 4. **Fotografías** — cámara o archivo, **sin límite**, con fecha/hora; se imprimen a **10 cm × 8 cm**.
 5. **Informe** — **vista previa editable**, exportación a **PDF** (imprimir/guardar como PDF), descarga de **HTML editable** y **envío por correo** (a cualquier dirección o rápido a `info@topingcr.com`).
-6. **Gestión / Revisión** — trámites retirados de la base activa (color distintivo), con **PDF**, **correo**, reactivación y un **submódulo de Auditoría** que verifica que todo el informe esté completo (errores / advertencias / completitud %).
-7. **Perfil** — profesional responsable configurable e **identidad visual** (logos TOPING y PYME, reemplazables). Incluye la **instalación de la app**.
-8. **Pruebas** — batería de pruebas integradas.
+6. **Gestión / Revisión** — inicia con el **Profesional responsable** (encabezado del informe, configurable), seguido del **submódulo de Auditoría** que verifica que todo el informe esté completo (errores / advertencias / completitud %), y el listado de trámites retirados de la base activa (color distintivo) con **PDF**, **correo** y reactivación.
 
 ## Tipos de trámite
 
 Cada tipo usa su **plantilla de informe** y su **conjunto de campos obligatorios**:
 
-- **Puesta en Posesión** — nomenclatura automática **`MUCAP-P.P-FOLIO-AÑO`** (única; el folio debe provenir del documento cargado).
+- **Puesta en Posesión** — nomenclatura automática **`P.P-MUCAP-FINCA-AÑO`** (ej. `P.P-MUCAP-522410-2026`) (única; el folio debe provenir del documento cargado).
 - **Avalúo** — `AVL-AÑO-FOLIO`.
 - **Informe de Replanteo** — `REP-AÑO-FOLIO`.
 - **Inspección general** — `INSP-AÑO-FOLIO`.
@@ -38,7 +36,7 @@ Texto **nativo** (`pdf.js`) con **OCR** de respaldo (`Tesseract.js`, español). 
 
 ## Instalación (teléfono · tablet · computadora)
 
-Desde **Perfil → Instalar aplicación** o el botón **Instalar** del encabezado:
+Con el botón **Instalar** del encabezado:
 
 - **Android/Chrome** y **Windows/macOS (Chrome/Edge)**: botón “Instalar” o menú → “Instalar app”.
 - **iPhone/iPad (Safari)**: Compartir ⬆️ → “Agregar a pantalla de inicio”.
@@ -66,7 +64,7 @@ Cubren **extracción parcial, folio duplicado, cambio de estado y generación de
 npm test          # runner Node (extrae y evalúa las funciones reales de index.html)
 ```
 
-También hay pruebas en la app (pestaña **Pruebas**). Verificación adicional en navegador headless (Playwright) confirma que la app abre con el CDN bloqueado (offline), guarda, filtra, cambia estado, audita y genera el informe sin errores de JavaScript.
+Verificación adicional en navegador headless (Playwright) confirma que la app abre con el CDN bloqueado (offline), guarda, filtra, cambia estado, audita y genera el informe sin errores de JavaScript.
 
 ## Estructura
 
