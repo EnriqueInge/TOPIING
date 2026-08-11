@@ -799,11 +799,13 @@ async function handlePdfFile(file){
     setPath(state,'inmueble.folioFinca',folio); state.extraction['inmueble.folioFinca']={source:'pdf',confidence:0.92};
     const exp=generateExpediente(tipo,folio); setPath(state,'tramite.expediente',exp); state.extraction['tramite.expediente']={source:'pdf',confidence:0.9};
     state.tramite.fechaInspeccion=todayISO();
-    paintFromState(); markDirty();
+    state.meta.status='ASIGNADO';
+    await saveCase(true);            // el trámite queda creado en la Base local de inmediato
+    paintFromState();
     prog.style.width='100%';
     const areaNote=fields['inmueble.areaRegistro']&&fields['inmueble.areaRegistro'].value?(' · Área: '+esc(fields['inmueble.areaRegistro'].value)+' m²'):'';
     $('#pdfSummary').className='notice ok';
-    $('#pdfSummary').innerHTML='✅ PDF procesado por '+(native?'<b>texto nativo</b>':'<b>OCR</b>')+'. Folio: <b>'+esc(folio)+'</b> · Expediente: <b>'+esc(exp)+'</b> · Campos: <b>'+Object.keys(fields).length+'</b>'+areaNote+'. Revise los campos marcados.';
+    $('#pdfSummary').innerHTML='✅ PDF procesado por '+(native?'<b>texto nativo</b>':'<b>OCR</b>')+'. Trámite <b>'+esc(exp)+'</b> creado en la Base local · Folio: <b>'+esc(folio)+'</b> · Campos: <b>'+Object.keys(fields).length+'</b>'+areaNote+'. Revise los campos marcados.';
     $('#pdfSummary').classList.remove('hidden'); status.textContent='LISTO.';
     setTimeout(()=>wrap.classList.add('hidden'),700);
     showView('expediente');
