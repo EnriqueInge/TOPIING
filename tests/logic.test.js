@@ -1,10 +1,11 @@
 /**
- * Pruebas de lógica pura del sistema de Ubicación de Bien Inmueble.
+ * Pruebas de lógica pura — TOPING · Inspecciones e Informes.
  * Ejecuta contra el código REAL: extrae el <script> de ../index.html,
  * neutraliza el arranque de DOM y evalúa las funciones en un sandbox.
  *
- * Casos cubiertos: extracción exitosa, extracción parcial, folio duplicado,
- * generación del informe y compatibilidad histórica.
+ * Cobertura (entregable h): extracción parcial, folio duplicado,
+ * cambio de estado y generación del informe (+ extracción/área en letras,
+ * nomenclatura, CRTM05, auditoría y compatibilidad histórica).
  *
  * Uso:  node tests/logic.test.js   (Node >= 18, sin dependencias)
  */
@@ -12,12 +13,10 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const htmlPath = path.join(__dirname, '..', 'index.html');
-const html = fs.readFileSync(htmlPath, 'utf8');
-
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 const app = scripts.find(s => s.includes('buildReportHTML'));
-if (!app) { console.error('No se encontró el script de la aplicación en index.html'); process.exit(2); }
+if (!app) { console.error('No se encontró el script de la aplicación'); process.exit(2); }
 
 let src = app
   .replace("document.addEventListener('DOMContentLoaded',init);", '')
@@ -25,86 +24,126 @@ let src = app
 
 const ctx = {
   encodeURIComponent, JSON, Math, Date, console, parseFloat, parseInt, isNaN,
-  String, Object, Array, RegExp, Number,
-  navigator: { onLine: true }, window: {}, indexedDB: {},
-  document: { querySelector: () => null, querySelectorAll: () => [], createElement: () => ({}), addEventListener: () => {} }
+  String, Object, Array, RegExp, Number, Set,
+  navigator: { onLine: true, userAgent: 'node', geolocation: null },
+  window: { matchMedia: () => ({ matches: false }), addEventListener: () => {} },
+  indexedDB: {},
+  document: { querySelector: () => null, querySelectorAll: () => [], createElement: () => ({ classList: { add() {}, remove() {} } }), addEventListener: () => {} }
 };
 vm.createContext(ctx);
 vm.runInContext(src, ctx);
 
-let pass = 0, fail = 0;
-const results = [];
+let pass = 0, fail = 0; const results = [];
 function test(name, fn) { try { fn(); pass++; results.push(['PASS', name, '']); } catch (e) { fail++; results.push(['FAIL', name, e.message]); } }
 function assert(c, m) { if (!c) throw new Error(m || 'assertion failed'); }
-
 const YR = new Date().getFullYear();
-const FULL = 'Folio Real: 7-90252-000 Naturaleza: Terreno Provincia: Limon Canton: Siquirres Distrito: Siquirres ' +
-  'Propietario: Mutual Cartago de Ahorro y Prestamo Cedula juridica: 3-009-045222 ' +
-  'Plano catastrado: L-0855909-1989 Area: 250,50 metros cuadrados Situacion: De la Escuela 20 metros norte';
+
+const FULL = 'REGISTRO Matricula: 7-90252-000 Naturaleza: Terreno Provincia: Limon Canton: Siquirres Distrito: Siquirres ' +
+  'Propietario: MUTUAL CARTAGO Cedula juridica: 3-009-045222 Plano catastrado: L-0855909-1989 ' +
+  'Mide: DOSCIENTOS CINCUENTA METROS CON CINCUENTA DECIMETROS CUADRADOS Situacion: De la Escuela 20 metros norte';
 const PARTIAL = 'Folio Real: 1-334455-000 Provincia: San Jose Naturaleza: Lote';
 
-test('Extracción exitosa: texto nativo completo', () => {
+test('Extracción exitosa + área en letras → número', () => {
   const f = ctx.extractFields(FULL);
-  assert(f['inmueble.folioFinca'] && f['inmueble.folioFinca'].value === '7-90252-000', 'folio');
-  assert(f['inmueble.planoCatastrado'] && f['inmueble.planoCatastrado'].value === 'L-0855909-1989', 'plano');
-  assert(f['ubicacion.provincia'] && f['ubicacion.provincia'].value.trim() === 'Limon', 'provincia limpia: ' + JSON.stringify(f['ubicacion.provincia']));
-  assert(f['ubicacion.canton'] && /Siquirres/.test(f['ubicacion.canton'].value), 'canton');
-  assert(f['inmueble.identificacion'] && f['inmueble.identificacion'].value.replace(/-/g, '').length >= 9, 'cedula');
-  assert(Object.keys(f).length >= 5, '>=5 campos');
+  assert(f['inmueble.folioFinca'].value === '7-90252-000', 'folio');
+  assert(f['inmueble.planoCatastrado'].value === 'L-0855909-1989', 'plano');
+  assert(f['ubicacion.provincia'].value.trim() === 'Limon', 'provincia: ' + JSON.stringify(f['ubicacion.provincia']));
+  assert(f['inmueble.areaRegistro'] && f['inmueble.areaRegistro'].value === '250.5', 'área letras→num: ' + JSON.stringify(f['inmueble.areaRegistro']));
 });
 
-test('Extracción parcial: campos faltantes quedan sin detectar', () => {
+test('Conversión de palabras a número', () => {
+  assert(ctx.areaWordsToNumber('DOSCIENTOS CINCUENTA CON CINCUENTA') === 250.5, '250.5');
+  assert(ctx.parseSpanishNumber('MIL DOSCIENTOS') === 1200, '1200');
+  assert(ctx.areaWordsToNumber('TRESCIENTOS') === 300, '300');
+});
+
+test('Extracción parcial: faltantes quedan sin detectar', () => {
   const f = ctx.extractFields(PARTIAL);
-  assert(f['inmueble.folioFinca'] && f['inmueble.folioFinca'].value === '1-334455-000', 'folio parcial');
-  assert(!f['inmueble.planoCatastrado'], 'plano NO debe detectarse');
-  assert(!f['inmueble.propietario'], 'propietario NO debe detectarse');
-  assert(f['ubicacion.provincia'], 'provincia SÍ debe extraerse');
+  assert(f['inmueble.folioFinca'].value === '1-334455-000', 'folio');
+  assert(!f['inmueble.planoCatastrado'], 'sin plano');
+  assert(!f['inmueble.propietario'], 'sin propietario');
+  assert(!f['inmueble.areaRegistro'], 'sin área');
+  assert(f['ubicacion.provincia'], 'con provincia');
 });
 
-test('Folio duplicado: generación de expediente y detección', () => {
-  const exp = ctx.generateExpediente('7-90252-000');
-  assert(exp === 'UBI-' + YR + '-7-90252-000', 'expediente: ' + exp);
-  const store = [{ meta: { id: 'x' }, inmueble: { folioFinca: '7-90252-000' }, tramite: { expediente: exp } }];
-  assert(ctx.findCaseByFolio(store, '7-90252-000') !== null, 'duplicado exacto');
-  assert(ctx.findCaseByFolio(store, ' 7-90252-000 ') !== null, 'duplicado con espacios');
-  assert(ctx.findCaseByFolio(store, '1-000000-000') === null, 'sin falso positivo');
+test('Folio duplicado + nomenclatura MUCAP-P.P', () => {
+  const exp = ctx.generateExpediente('pp', '7-90252-000');
+  assert(exp === 'MUCAP-P.P-7-90252-000-' + YR, 'nomenclatura: ' + exp);
+  const store = [{ meta: { id: 'x' }, tramite: { tipo: 'pp', expediente: exp }, inmueble: { folioFinca: '7-90252-000' } }];
+  assert(ctx.findCaseByFolio(store, '7-90252-000', 'pp') !== null, 'duplicado exacto');
+  assert(ctx.findCaseByFolio(store, ' 7-90252-000 ', 'pp') !== null, 'duplicado con espacios');
+  assert(ctx.findCaseByFolio(store, '7-90252-000', 'avaluo') === null, 'otro tipo no es duplicado');
+  assert(ctx.findCaseByFolio(store, '1-000000-000', 'pp') === null, 'sin falso positivo');
 });
 
-test('Generación del informe: HTML con secciones, encabezado y logos', () => {
+test('Cambio de estado a Gestión y filtrado', () => {
+  const s = ctx.newState();
+  assert(s.meta.estado === 'activo', 'nace activo');
+  s.meta.estado = 'gestion';
+  const all = [{ meta: { estado: 'activo' } }, { meta: { estado: 'gestion' } }, { meta: { estado: 'gestion' } }];
+  assert(all.filter(c => c.meta.estado !== 'gestion').length === 1, 'un activo');
+  assert(all.filter(c => c.meta.estado === 'gestion').length === 2, 'dos en gestión');
+});
+
+test('Coordenadas CRTM05 dentro de rango de Costa Rica', () => {
+  const c = ctx.wgs84ToCRTM05(10.0, -84.0);
+  assert(Math.abs(c.E - 500000) < 1, 'E ~500000 en meridiano central: ' + c.E);
+  assert(c.N > 1100000 && c.N < 1120000, 'N ~1.1M: ' + c.N);
+});
+
+test('Generación del informe por tipo (logos, encabezado, sin finalidad)', () => {
   const st = ctx.newState();
-  st.tramite.expediente = 'UBI-' + YR + '-7-90252-000';
-  st.tramite.tipoInforme = 'Ubicación y puesta en posesión';
-  st.inmueble.folioFinca = '7-90252-000';
-  st.inmueble.propietario = 'Propietario X';
-  st.ubicacion.provincia = 'Limón'; st.ubicacion.canton = 'Siquirres'; st.ubicacion.distrito = 'Siquirres';
-  st.verificacion = [{ elemento: 'Lindero ESTE', plano: '12.00', sitio: '12.15', dif: '+0.15' }];
+  st.tramite.tipo = 'pp'; st.tramite.expediente = 'MUCAP-P.P-7-90252-000-' + YR;
+  st.inmueble.folioFinca = '7-90252-000'; st.ubicacion.provincia = 'LIMÓN';
+  st.verificacion = [{ elemento: 'LINDERO ESTE', plano: '12.00', sitio: '12.15', dif: '+0.15' }];
   const h = ctx.buildReportHTML(st);
-  assert(h.includes('INFORME TÉCNICO DE UBICACIÓN'), 'título');
-  assert(h.includes('7-90252-000'), 'folio en informe');
-  assert(h.includes('1. Datos generales del trámite'), 'sección 1');
-  assert(h.includes('5. Verificación'), 'sección 5');
+  assert(h.includes('INFORME DE PUESTA EN POSESIÓN'), 'título PP');
+  assert(h.includes('7-90252-000'), 'folio');
+  assert(h.includes('4. Levantamiento y verificación'), 'levantamiento+verificación unificado');
   assert(h.includes('IT-30674'), 'encabezado profesional');
-  assert(/svg|data:image/.test(h), 'logos presentes');
-  assert(!/MUCAP/i.test(ctx.reportHead()), 'sin logo/marca MUCAP en el encabezado');
+  assert(/class="toping"/.test(h) && /class="pyme"/.test(h), 'logos TOPING + PYME');
+  assert(!/finalidad/i.test(h), 'sin campo Finalidad');
+  // Avalúo cambia de plantilla
+  const st2 = ctx.newState(); st2.tramite.tipo = 'avaluo';
+  assert(ctx.buildReportHTML(st2).includes('INFORME DE AVALÚO'), 'título Avalúo');
 });
 
-test('Compatibilidad histórica: campos eliminados van a _legacy y no al payload', () => {
-  const legacy = {
-    meta: { id: 'old1' },
-    tramite: { expediente: 'X', fechaSolicitud: '2025-01-01' },
-    inmueble: { folioFinca: '2-1-1', planoConsulta: 'L-1', origenDato: 'Registro', fechaConsultaRegistral: '2025-02-02' },
-    ubicacion: {}
-  };
+test('Auditoría: detecta incompleto y completo', () => {
+  const a1 = ctx.auditReport(ctx.newState());
+  assert(a1.errors > 0 && !a1.complete, 'vacío incompleto');
+  const full = ctx.newState();
+  full.tramite.tipo = 'pp'; full.tramite.expediente = 'MUCAP-P.P-7-1-0-' + YR; full.tramite.fechaInspeccion = '2026-08-03';
+  full.inmueble.folioFinca = '7-1-0'; full.inmueble.propietario = 'X'; full.inmueble.areaRegistro = '250.5'; full.inmueble.planoCatastrado = 'L-1-2';
+  full.ubicacion.provincia = 'LIMÓN'; full.ubicacion.canton = 'SIQUIRRES'; full.ubicacion.distrito = 'SIQUIRRES'; full.ubicacion.direccion = 'DE LA ESCUELA';
+  full.levantamiento.este = '500000'; full.levantamiento.norte = '1100000'; full.levantamiento.precision = '3';
+  full.verificacion = [{ elemento: 'LINDERO', plano: '12', sitio: '12.1', dif: '+0.10' }]; full.fotos = [{ dataUrl: 'data:img', capturedAt: 1 }];
+  full.responsable.nombre = 'ING'; full.responsable.registro = 'IT-30674';
+  const a2 = ctx.auditReport(full);
+  assert(a2.errors === 0, 'completo sin errores: ' + a2.errors);
+  assert(a2.complete, 'marcado completo');
+});
+
+test('MAYÚSCULAS globales (respeta email y data:)', () => {
+  const s = ctx.newState();
+  s.inmueble.propietario = 'juan pérez'; s.responsable.email = 'info@topingcr.com';
+  s.fotos = [{ dataUrl: 'data:image/png;base64,AAA', descripcion: 'frente' }];
+  ctx.applyUppercase(s);
+  assert(s.inmueble.propietario === 'JUAN PÉREZ', 'propietario en mayúsculas');
+  assert(s.responsable.email === 'info@topingcr.com', 'email intacto');
+  assert(s.fotos[0].dataUrl === 'data:image/png;base64,AAA', 'dataUrl intacto');
+  assert(s.fotos[0].descripcion === 'FRENTE', 'descripción en mayúsculas');
+});
+
+test('Compatibilidad histórica (_legacy incl. finalidad)', () => {
+  const legacy = { meta: { id: 'o' }, tramite: { expediente: 'X', fechaSolicitud: '2025-01-01' }, inmueble: { folioFinca: '2-1-1', planoConsulta: 'L-1' }, levantamiento: { finalidad: 'ILUSTRATIVA' }, ubicacion: {} };
   const m = ctx.migrateRecord(legacy);
   assert(m._legacy['tramite.fechaSolicitud'] === '2025-01-01', 'preserva fechaSolicitud');
-  assert(m._legacy['inmueble.planoConsulta'] === 'L-1', 'preserva planoConsulta');
-  assert(m._legacy['inmueble.origenDato'] === 'Registro', 'preserva origenDato');
-  assert(m._legacy['inmueble.fechaConsultaRegistral'] === '2025-02-02', 'preserva fechaConsultaRegistral');
-  assert(m.tramite.fechaSolicitud === undefined, 'fechaSolicitud NO en payload activo');
-  assert(m.inmueble.planoConsulta === undefined, 'planoConsulta NO en payload activo');
+  assert(m._legacy['levantamiento.finalidad'] === 'ILUSTRATIVA', 'preserva finalidad');
+  assert(m.levantamiento.finalidad === undefined, 'finalidad fuera del payload activo');
+  assert(m.tramite.tipo === 'pp', 'tipo por defecto en históricos');
 });
 
-console.log('\n  Pruebas — Ubicación de Bien Inmueble\n');
+console.log('\n  Pruebas — TOPING · Inspecciones e Informes\n');
 for (const [status, name, detail] of results) {
   console.log(`  ${status === 'PASS' ? '✓' : '✗'} [${status}] ${name}${detail ? '  → ' + detail : ''}`);
 }

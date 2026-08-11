@@ -2,7 +2,7 @@
    Nota: las librerías de PDF/OCR/Excel se sirven desde CDN y requieren
    conexión la primera vez; el resto de la app funciona sin conexión. */
 const CACHE = 'ubi-bien-inmueble-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -17,14 +17,18 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const { request } = e;
   if (request.method !== 'GET') return;
-  // Cache-first para el mismo origen; network para CDN.
-  if (new URL(request.url).origin === self.location.origin) {
+  const url = new URL(request.url);
+  const sameOrigin = url.origin === self.location.origin;
+  const isCdnLib = /cdnjs\.cloudflare\.com/.test(url.href);
+  // Cache-first tanto para el mismo origen como para las librerías del CDN,
+  // de modo que tras la primera carga con internet la app abra y funcione offline.
+  if (sameOrigin || isCdnLib) {
     e.respondWith(
       caches.match(request).then(hit => hit || fetch(request).then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(request, copy)).catch(() => {});
         return res;
-      }).catch(() => caches.match('./index.html')))
+      }).catch(() => sameOrigin ? caches.match('./index.html') : Promise.reject('offline')))
     );
   }
 });
