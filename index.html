@@ -142,9 +142,10 @@
   #reportPreview .print-head{position:static;display:flex;align-items:center;gap:16px;border-bottom:3px solid var(--accent);padding-bottom:12px;margin-bottom:14px;height:auto}
   #reportPreview .print-head .ph-left{display:flex;align-items:center;gap:14px}
   #reportPreview .print-head img.toping{height:58px;width:auto;max-width:130px;object-fit:contain}
-  #reportPreview .print-head img.pyme{height:52px;width:auto;max-width:95px;object-fit:contain;margin-left:auto}
+  #reportPreview .print-head img.pyme{height:58px;width:auto;max-width:105px;object-fit:contain;margin-left:auto}
   #reportPreview .print-head .ph-prof{font-size:12px;font-weight:700;line-height:1.5;text-transform:uppercase;letter-spacing:.02em;color:#1b1b1d}
   #reportPreview .print-head .ph-prof b{font-size:15px}
+  #reportPreview .print-head .ph-prof .ph-mail{text-transform:lowercase;font-weight:600;color:#444}
   #reportPreview .print-foot{display:none}
   #reportPreview .rep-title h1{font-size:18px;color:var(--brand);margin:4px 0}
   #reportPreview .rep-title p{font-size:12px;color:var(--muted);margin:2px 0}
@@ -175,7 +176,11 @@
     .layout{display:none!important}main{display:none!important}
     body{background:#fff}
     #printArea{display:block}
-    @page{size:A4;margin:10mm 12mm 16mm 12mm}
+    @page{
+      size:A4;margin:10mm 12mm 18mm 12mm;
+      @bottom-left{content:"DOCUMENTO INFORMATIVO NO TÉCNICO";font-size:8px;color:#777;font-family:"Segoe UI",Arial,sans-serif}
+      @bottom-right{content:"PÁGINA " counter(page) " DE " counter(pages);font-size:8px;color:#777;font-family:"Segoe UI",Arial,sans-serif}
+    }
     /* Encabezado repetido en cada página mediante thead (robusto en Chrome/Edge) */
     .rep-wrap{width:100%;border-collapse:collapse}
     .rep-wrap>thead>tr>th{border:0!important;background:none!important;padding:0!important;text-align:left}
@@ -183,10 +188,11 @@
     .print-head{display:flex;align-items:center;gap:6mm;border-bottom:2px solid var(--accent);padding:2mm 0 3mm;margin-bottom:5mm}
     .print-head .ph-left{display:flex;align-items:center;gap:5mm}
     .print-head img.toping{height:18mm;width:auto;max-width:36mm;object-fit:contain}
-    .print-head img.pyme{height:16mm;width:auto;max-width:26mm;object-fit:contain;margin-left:auto}
+    .print-head img.pyme{height:18mm;width:auto;max-width:30mm;object-fit:contain;margin-left:auto}
     .print-head .ph-prof{font-size:10px;font-weight:700;line-height:1.5;color:#111;text-align:left;text-transform:uppercase;letter-spacing:.02em}
     .print-head .ph-prof b{font-size:12.5px;color:#1b1b1d}
-    .print-foot{position:fixed;bottom:-12mm;left:0;right:0;height:10mm;font-size:9px;color:#555;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center}
+    .print-head .ph-prof .ph-mail{text-transform:lowercase;font-weight:600;color:#444}
+    .print-foot{display:none}
     .rep-title{text-align:center;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
     .rep-title .rt-co{font-size:9px;letter-spacing:.2em;color:#777;text-transform:uppercase;margin:0 0 3px}
     .rep-title h1{font-size:16px;margin:0;color:#1b1b1d;letter-spacing:.05em}
@@ -517,7 +523,7 @@ function newState(){
 }
 let state = newState();
 let dirty = false;
-let settings = { profName:'ING. ENRIQUE ALVARADO MARTÍNEZ', profReg:'IT-30674', profTitle:'INGENIERO TOPÓGRAFO', profCompany:'TOPING · PYME', profContact:'info@topingcr.com', logoToping:DEFAULT_LOGOS.toping, logoPyme:DEFAULT_LOGOS.pyme };
+let settings = { profName:'ING. ENRIQUE ALVARADO MARTÍNEZ', profReg:'IT-30674', profTitle:'INGENIERO TOPÓGRAFO', profCompany:'TOPING · ID PYME-62779', profContact:'info@topingcr.com', logoToping:DEFAULT_LOGOS.toping, logoPyme:DEFAULT_LOGOS.pyme };
 
 /* ---------- IndexedDB ---------- */
 const DB_NAME='toping_bien_inmueble', DB_VER=1;
@@ -1042,6 +1048,7 @@ async function loadSettings(){
   const kv=await dbGet('kv','settings');
   if(kv&&kv.v)settings=Object.assign(settings,kv.v);
   if(settings.profTitle==='INGENIERO')settings.profTitle='INGENIERO TOPÓGRAFO'; // migración del título anterior
+  if(settings.profCompany==='TOPING · PYME')settings.profCompany='TOPING · ID PYME-62779'; // migración de la línea de empresa
   applySettings();
 }
 function applySettings(){
@@ -1063,16 +1070,17 @@ function uploadLogo(which,file){const r=new FileReader();r.onload=async e=>{sett
 /* ---------- Informe ---------- */
 function reportHead(){
   return `<div class="print-head">
-    <div class="ph-left"><img class="toping" src="${settings.logoToping}"><div class="ph-prof"><b>${esc(settings.profName)}</b><br>${esc(settings.profTitle||'')} · REG. ${esc(settings.profReg)}<br>${esc(settings.profCompany||'')}</div></div>
+    <div class="ph-left"><img class="toping" src="${settings.logoToping}"><div class="ph-prof"><b>${esc(settings.profName)}</b><br>${esc(settings.profTitle||'')} · REG. ${esc(settings.profReg)}<br>${esc(settings.profCompany||'')}${settings.profContact?`<br><span class="ph-mail">${esc(settings.profContact)}</span>`:''}</div></div>
     <img class="pyme" src="${settings.logoPyme}">
   </div>`;
 }
 function reportFoot(){
   return `<div class="print-foot"><span>${esc(settings.profCompany||'TOPING · PYME')}${settings.profContact?(' · '+esc(settings.profContact)):''}</span><span>DOCUMENTO INFORMATIVO NO TÉCNICO</span></div>`;
 }
-/* Envuelve el informe: thead repite el encabezado (logos) en cada página impresa */
+/* Envuelve el informe: thead repite el encabezado (logos) en cada página impresa.
+   El pie (leyenda y numeración de hojas) lo pone @page en los márgenes de impresión. */
 function wrapReport(body){
-  return `<table class="rep-wrap"><thead><tr><th>${reportHead()}</th></tr></thead><tbody><tr><td>${body}${reportFoot()}</td></tr></tbody></table>`;
+  return `<table class="rep-wrap"><thead><tr><th>${reportHead()}</th></tr></thead><tbody><tr><td>${body}</td></tr></tbody></table>`;
 }
 function kvRow(a,av,b,bv){return `<tr><td><b>${esc(a)}</b></td><td>${esc(av||'SIN DATOS')}</td><td><b>${esc(b)}</b></td><td>${esc(bv||'SIN DATOS')}</td></tr>`;}
 function buildReportHTML(st){
@@ -1104,11 +1112,17 @@ function buildReportHTML(st){
   <table style="margin-top:6px"><thead><tr><th>ELEMENTO VERIFICADO</th><th>SEGÚN PLANO (M)</th><th>EN SITIO (M)</th><th>DIFERENCIA (M)</th></tr></thead><tbody>${verif}</tbody></table></div>
   ${fotos?`<div class="rep-sec rep-sec-photos"><h2>5. Registro fotográfico</h2><div class="rep-photos">${fotos}</div></div>`:''}
   <div class="rep-sec"><div class="sign-row">
-    <div class="sign-box"><div class="sb-body"><b>${esc(r.nombre||settings.profName)}</b> · ${esc(fmtDate(r.fecha)||fmtDate(todayISO()))}<br>${esc(r.registro||settings.profReg)}</div><div class="sb-tag">PROFESIONAL RESPONSABLE</div></div>
+    <div class="sign-box"><div class="sb-body"><b>${esc(r.nombre||settings.profName)}</b><br>${esc(settings.profTitle||'')}<br>${esc(r.registro||settings.profReg)}</div><div class="sb-tag">PROFESIONAL RESPONSABLE</div></div>
     <div class="sign-box"><div class="sb-body sb-space"></div><div class="sb-tag">FIRMA</div></div>
   </div></div>`);
 }
 function buildReport(){
+  // La fecha del informe se autocompleta con la fecha actual si está vacía
+  if(!state.tramite.fechaInforme){
+    state.tramite.fechaInforme=todayISO();
+    const el=$('[data-path="tramite.fechaInforme"]'); if(el)el.value=state.tramite.fechaInforme;
+    markDirty();
+  }
   const html=buildReportHTML(state);
   $('#printArea').innerHTML=html;
   $('#reportPreview').innerHTML=html;  // los estilos #reportPreview controlan tamaño de logos y fotos en pantalla
