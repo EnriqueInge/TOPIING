@@ -1,7 +1,7 @@
-/* Service worker: cachea el shell de la app para uso offline.
-   Nota: las librerías de PDF/OCR/Excel se sirven desde CDN y requieren
-   conexión la primera vez; el resto de la app funciona sin conexión. */
-const CACHE = 'ubi-bien-inmueble-v2';
+/* Service worker: la app (index.html) se sirve RED-PRIMERO para que las
+   actualizaciones lleguen siempre, con respaldo en caché para uso offline.
+   Las librerías (lib/) e íconos se sirven caché-primero. */
+const CACHE = 'ubi-bien-inmueble-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
   './lib/pdf.min.js', './lib/pdf.worker.min.js', './lib/xlsx.full.min.js'];
 
@@ -15,21 +15,30 @@ self.addEventListener('activate', e => {
   );
 });
 
+function cachePut(request, res) {
+  const copy = res.clone();
+  caches.open(CACHE).then(c => c.put(request, copy)).catch(() => {});
+  return res;
+}
+
 self.addEventListener('fetch', e => {
   const { request } = e;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
   const isCdnLib = /cdnjs\.cloudflare\.com/.test(url.href);
-  // Cache-first tanto para el mismo origen como para las librerías del CDN,
-  // de modo que tras la primera carga con internet la app abra y funcione offline.
-  if (sameOrigin || isCdnLib) {
+  if (!sameOrigin && !isCdnLib) return;
+
+  const isAppShell = request.mode === 'navigate' || /(?:^|\/)index\.html$/.test(url.pathname) || url.pathname.endsWith('/');
+  if (isAppShell) {
+    // RED PRIMERO: siempre la última versión; caché solo si no hay conexión
     e.respondWith(
-      caches.match(request).then(hit => hit || fetch(request).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(request, copy)).catch(() => {});
-        return res;
-      }).catch(() => sameOrigin ? caches.match('./index.html') : Promise.reject('offline')))
+      fetch(request).then(res => cachePut(request, res)).catch(() => caches.match(request).then(hit => hit || caches.match('./index.html')))
+    );
+  } else {
+    // Librerías, íconos y CDN: caché primero (no cambian entre versiones)
+    e.respondWith(
+      caches.match(request).then(hit => hit || fetch(request).then(res => cachePut(request, res)).catch(() => Promise.reject('offline')))
     );
   }
 });
