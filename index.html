@@ -158,7 +158,8 @@
   #reportPreview .sign-row{display:flex;gap:24px;margin-top:24px}
   #reportPreview .sign-box{flex:1;border:1px solid #888;border-radius:8px;min-height:90px;padding:12px;font-size:12px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center}
   #reportPreview .sign-box .sb-body{margin-bottom:8px}
-  #reportPreview .sign-box .sb-space{min-height:50px}
+  #reportPreview .sign-box .sb-space{min-height:50px;display:flex;align-items:flex-end;justify-content:center}
+  #reportPreview .sign-img{max-height:60px;max-width:240px;object-fit:contain}
   #reportPreview .sign-box .sb-tag{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;border-top:1px solid #aaa;padding-top:6px}
   @media(max-width:900px){
     .layout{display:block}nav{display:none}
@@ -211,7 +212,8 @@
     .sign-row{display:flex;gap:10mm;margin-top:12mm}
     .sign-box{flex:1;border:1px solid #666;border-radius:2mm;min-height:24mm;padding:3mm;font-size:10px;display:flex;flex-direction:column;justify-content:flex-end;text-align:center;color:#222;break-inside:avoid}
     .sign-box .sb-body{margin-bottom:2mm}
-    .sign-box .sb-space{min-height:14mm}
+    .sign-box .sb-space{min-height:14mm;display:flex;align-items:flex-end;justify-content:center}
+    .sign-img{max-height:16mm;max-width:70mm;object-fit:contain;display:block}
     .sign-box .sb-tag{font-size:8px;color:#777;text-transform:uppercase;letter-spacing:.1em;border-top:1px solid #999;padding-top:1.5mm}
     html,body{margin:0!important;padding:0!important}
     #printArea{margin:0;padding:0}
@@ -280,6 +282,7 @@
       </div>
       <div class="notice hidden" id="pdfSummary"></div>
       <div class="notice hidden" id="excelSummary"></div>
+      <div class="notice warn hidden" id="backupReminder"></div>
     </div>
     <div class="card">
       <div class="section-head"><h3>Expedientes activos</h3><div class="actions"><span class="help" id="dbFilterInfo"></span></div></div>
@@ -422,6 +425,13 @@
         <button class="btn small ghost" id="emailBtn">✉️ Enviar por correo</button>
         <button class="btn small warn" id="emailTopingBtn">✉️ Enviar a info@topingcr.com</button>
       </div>
+      <h4 style="margin:16px 0 6px;color:var(--brand)">✍️ Firma digital del expediente</h4>
+      <div class="help" style="margin-bottom:6px">Dibuje la firma con el dedo (celular/tablet), lápiz táctil o mouse. Se guarda con el expediente y aparece en el cuadro FIRMA del informe.</div>
+      <canvas id="signPad" width="1000" height="260" style="width:100%;max-width:520px;height:150px;border:1.5px dashed var(--accent);border-radius:10px;background:#fff;touch-action:none;display:block"></canvas>
+      <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+        <button class="btn small ghost" id="signClearBtn">Limpiar firma</button>
+        <span class="help" id="signState"></span>
+      </div>
       <div class="help">La vista previa es editable: haga cambios directamente antes de exportar. El PDF se genera con “PDF / Imprimir” (guardar como PDF).</div>
     </div>
     <div class="notice hidden" id="reportAudit"></div>
@@ -515,7 +525,7 @@ function newState(){
     ubicacion:{ provincia:'', canton:'', distrito:'', localidad:'', direccion:'', tipoAcceso:'' },
     levantamiento:{ sistema:'CRTM05 (CR-SIRGAS)', este:'', norte:'', precision:'', capturaHora:'' },
     verificacion:[],
-    responsable:{ nombre:'', registro:'', email:'', fecha:'' },
+    responsable:{ nombre:'', registro:'', email:'', fecha:'', firma:'' },
     fotos:[],
     extraction:{},
     _legacy:{}
@@ -548,7 +558,7 @@ function fmtDate(iso){if(!iso)return '';const p=String(iso).split('-');return p.
 /* ---------- MAYÚSCULAS globales ---------- */
 function upperStr(v){ if(typeof v!=='string') return v; if(v.startsWith('data:')||v.indexOf('@')>=0) return v; return v.toUpperCase(); }
 /* Claves-máquina/enum/id que NO deben pasarse a mayúsculas (rompen lógica) */
-const NO_UPPER_KEYS=new Set(['tipo','estado','id','createdAt','updatedAt','status','dataUrl','latlon','email','confidence','source','capturedAt']);
+const NO_UPPER_KEYS=new Set(['tipo','estado','id','createdAt','updatedAt','status','dataUrl','latlon','email','confidence','source','capturedAt','firma']);
 function applyUppercase(o){
   if(Array.isArray(o)){o.forEach(applyUppercase);return;}
   if(o&&typeof o==='object'){for(const k in o){ if(k==='extraction'||k==='meta') continue; if(NO_UPPER_KEYS.has(k)) continue; const v=o[k]; if(typeof v==='string') o[k]=upperStr(v); else applyUppercase(v);} }
@@ -595,6 +605,7 @@ function paintFromState(){
   $$('[data-path]').forEach(el=>{const v=getPath(state,el.dataset.path);el.value=(v==null?'':v);refreshFieldFlag(el);});
   $('#caseCode').textContent=state.tramite.expediente||'CASO NUEVO';
   const pcc=$('#photosCaseCode'); if(pcc)pcc.textContent=state.tramite.expediente||'CASO NUEVO';
+  paintSignature();
   buildTipoSelectors(); renderVerif(); renderPhotos(); renderGps(); updateBadges(); applyProfileDefaults();
 }
 function markDirty(){dirty=true;$('#saveState').textContent='CAMBIOS SIN GUARDAR';$('#saveBarStatus').textContent='CAMBIOS SIN GUARDAR';updateBadges();}
@@ -977,6 +988,18 @@ async function renderCaseList(){
   });
   $('#dbCount').textContent=active.length;
   $('#dbFilterInfo').textContent=filtered.length+' de '+active.length+' mostrados';
+  // Recordatorio de respaldo: con expedientes guardados y sin respaldo reciente (7 días)
+  try{
+    const br=$('#backupReminder');
+    if(br){
+      const kv=await dbGet('kv','lastBackupAt'); const last=kv&&kv.v?kv.v:0;
+      const days=Math.floor((Date.now()-last)/86400000);
+      if(all.length>=3 && (!last || days>=7)){
+        br.textContent='💾 RESPALDO RECOMENDADO: tiene '+all.length+' expediente(s) y '+(last?('el último respaldo fue hace '+days+' día(s)'):'aún no ha hecho un respaldo')+'. Use “Respaldo JSON” para guardar una copia.';
+        br.classList.remove('hidden');
+      } else br.classList.add('hidden');
+    }
+  }catch(e){}
   const list=$('#caseList'); list.innerHTML=''; $('#caseEmpty').style.display=filtered.length?'none':'block';
   filtered.forEach(c=>list.appendChild(caseRow(c,false)));
 }
@@ -1040,10 +1063,65 @@ async function importSpreadsheet(file){
   }
 }
 function csvToObjects(text){const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim());if(!lines.length)return[];const split=l=>{const o=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++;}else q=!q;}else if(ch===','&&!q){o.push(c);c='';}else c+=ch;}o.push(c);return o;};const h=split(lines[0]).map(x=>x.trim());return lines.slice(1).map(l=>{const c=split(l);const o={};h.forEach((k,i)=>o[k]=(c[i]||'').trim());return o;});}
-async function exportJson(){const cases=await dbGetAll('cases');const b=new Blob([JSON.stringify({exported:new Date().toISOString(),settings,cases},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='respaldo_toping.json';a.click();}
+async function exportJson(){await dbPut('kv',{k:'lastBackupAt',v:Date.now()});const cases=await dbGetAll('cases');const b=new Blob([JSON.stringify({exported:new Date().toISOString(),settings,cases},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='respaldo_toping.json';a.click();}
 async function importJsonFile(file){const data=JSON.parse(await file.text());if(data.settings){settings=Object.assign(settings,data.settings);await dbPut('kv',{k:'settings',v:settings});applySettings();}for(const c of (data.cases||[])){if(!c.meta||!c.meta.id)c.meta={...(c.meta||{}),id:uid()};await dbPut('cases',c);}refreshLists();toast((data.cases||[]).length+' expediente(s) restaurado(s)');}
 
 /* ---------- Perfil / logos ---------- */
+/* ---------- Firma digital (celular · tablet · computadora) ---------- */
+let signCtx=null, signDrawing=false, signDirty=false;
+function initSignPad(){
+  const cv=$('#signPad'); if(!cv) return;
+  signCtx=cv.getContext('2d');
+  signCtx.lineWidth=4; signCtx.lineCap='round'; signCtx.lineJoin='round'; signCtx.strokeStyle='#10233b';
+  const pos=e=>{const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*(cv.width/r.width),y:(e.clientY-r.top)*(cv.height/r.height)};};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);signDrawing=true;const p=pos(e);signCtx.beginPath();signCtx.moveTo(p.x,p.y);});
+  cv.addEventListener('pointermove',e=>{if(!signDrawing)return;e.preventDefault();const p=pos(e);signCtx.lineTo(p.x,p.y);signCtx.stroke();signDirty=true;});
+  const end=e=>{if(!signDrawing)return;signDrawing=false;if(signDirty){state.responsable.firma=cv.toDataURL('image/png');$('#signState').textContent='FIRMA REGISTRADA ✓ (se guarda con el expediente)';markDirty();}};
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end); cv.addEventListener('pointerleave',end);
+  $('#signClearBtn').onclick=()=>{signCtx.clearRect(0,0,cv.width,cv.height);state.responsable.firma='';signDirty=false;$('#signState').textContent='';markDirty();};
+}
+function paintSignature(){
+  const cv=$('#signPad'); if(!cv||!signCtx) return;
+  signCtx.clearRect(0,0,cv.width,cv.height); signDirty=false;
+  if(state.responsable.firma){
+    const img=new Image();
+    img.onload=()=>signCtx.drawImage(img,0,0,cv.width,cv.height);
+    img.src=state.responsable.firma;
+    $('#signState').textContent='FIRMA REGISTRADA ✓';
+  } else { $('#signState').textContent=''; }
+}
+
+/* ---------- Protección de datos ante actualizaciones ---------- */
+/* Los expedientes viven en IndexedDB: las actualizaciones de la app (service worker)
+   solo renuevan archivos, NUNCA tocan la base. Estas dos funciones refuerzan eso. */
+async function requestPersistence(){
+  // Pide al navegador marcar el almacenamiento como persistente (no se purga por falta de espacio)
+  try{ if(navigator.storage&&navigator.storage.persist){ await navigator.storage.persist(); } }catch(e){}
+}
+async function migrateOldDatabase(){
+  // Recupera expedientes guardados por versiones anteriores de la app (BD 'ubi_bien_inmueble')
+  try{
+    if(indexedDB.databases){
+      const dbs=await indexedDB.databases();
+      if(!dbs.some(d=>d.name==='ubi_bien_inmueble')) return 0;
+    }
+    const old=await new Promise((res,rej)=>{const r=indexedDB.open('ubi_bien_inmueble');r.onsuccess=e=>res(e.target.result);r.onerror=e=>rej(e.target.error);});
+    if(!old.objectStoreNames.contains('cases')){old.close();return 0;}
+    const oldCases=await new Promise((res,rej)=>{const t=old.transaction('cases','readonly');const q=t.objectStore('cases').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=e=>rej(e.target.error);});
+    old.close();
+    if(!oldCases.length) return 0;
+    const current=await dbGetAll('cases');
+    const ids=new Set(current.map(c=>c.meta&&c.meta.id));
+    let imported=0;
+    for(const c of oldCases){
+      if(!c.meta||!c.meta.id||ids.has(c.meta.id)) continue;
+      await dbPut('cases',JSON.parse(JSON.stringify(migrateRecord(c))));
+      imported++;
+    }
+    if(imported){toast(imported+' expediente(s) de la versión anterior recuperado(s)');refreshLists();}
+    return imported;
+  }catch(e){return 0;}
+}
 async function loadSettings(){
   const kv=await dbGet('kv','settings');
   if(kv&&kv.v)settings=Object.assign(settings,kv.v);
@@ -1113,7 +1191,7 @@ function buildReportHTML(st){
   ${fotos?`<div class="rep-sec rep-sec-photos"><h2>5. Registro fotográfico</h2><div class="rep-photos">${fotos}</div></div>`:''}
   <div class="rep-sec"><div class="sign-row">
     <div class="sign-box"><div class="sb-body"><b>${esc(r.nombre||settings.profName)}</b><br>${esc(settings.profTitle||'')}<br>${esc(r.registro||settings.profReg)}</div><div class="sb-tag">PROFESIONAL RESPONSABLE</div></div>
-    <div class="sign-box"><div class="sb-body sb-space"></div><div class="sb-tag">FIRMA</div></div>
+    <div class="sign-box"><div class="sb-body sb-space">${r.firma?`<img class="sign-img" src="${r.firma}" alt="firma">`:''}</div><div class="sb-tag">FIRMA</div></div>
   </div></div>`);
 }
 function buildReport(){
@@ -1176,6 +1254,7 @@ function auditReport(st){
   add('Al menos 1 fotografía', (st.fotos||[]).length>0,'warn');
   add('Responsable (nombre)', has('responsable.nombre'),'error');
   add('Responsable (registro)', has('responsable.registro'),'warn');
+  add('Firma digital del expediente', has('responsable.firma'),'warn');
   const errors=items.filter(i=>!i.ok&&i.level==='error').length;
   const warnings=items.filter(i=>!i.ok&&i.level==='warn').length;
   const oks=items.filter(i=>i.ok).length;
@@ -1258,7 +1337,7 @@ function runTests(){
     full.ubicacion.provincia='LIMÓN'; full.ubicacion.canton='SIQUIRRES'; full.ubicacion.distrito='SIQUIRRES'; full.ubicacion.direccion='DE LA ESCUELA';
     full.levantamiento.este='500000'; full.levantamiento.norte='1100000'; full.levantamiento.precision='3';
     full.verificacion=[{elemento:'LINDERO',plano:'12',sitio:'12.1',dif:'+0.10'}]; full.fotos=[{dataUrl:'data:img',capturedAt:1}];
-    full.responsable.nombre='ING'; full.responsable.registro='IT-30674';
+    full.responsable.nombre='ING'; full.responsable.registro='IT-30674'; full.responsable.firma='data:image/png;base64,AAA';
     const a2=auditReport(full); assert(a2.errors===0,'completo sin errores: '+a2.errors); assert(a2.complete,'debe estar completo');
   });
   add('Compatibilidad histórica (_legacy, incl. finalidad)',()=>{const legacy={meta:{id:'o'},tramite:{expediente:'X',fechaSolicitud:'2025-01-01'},inmueble:{folioFinca:'2-1-1',planoConsulta:'L-1'},levantamiento:{finalidad:'ILUSTRATIVA'},ubicacion:{}};const m=migrateRecord(legacy);assert(m._legacy['tramite.fechaSolicitud']==='2025-01-01','fechaSolicitud');assert(m._legacy['levantamiento.finalidad']==='ILUSTRATIVA','finalidad preservada');assert(m.levantamiento.finalidad===undefined,'finalidad fuera del payload');});
@@ -1314,6 +1393,9 @@ function init(){
   if(!state.verificacion.length)state.verificacion=[{elemento:'LINDERO ESTE',plano:'',sitio:'',dif:''},{elemento:'REFERENCIA A ESQUINA',plano:'',sitio:'',dif:''},{elemento:'ANCHO DE CALLE PÚBLICA',plano:'',sitio:'',dif:''}];
   loadSettings().then(()=>{buildTipoSelectors();onTipoChange();paintFromState();});
   refreshLists();
+  requestPersistence();
+  migrateOldDatabase();
+  initSignPad();
 }
 document.addEventListener('DOMContentLoaded',init);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}

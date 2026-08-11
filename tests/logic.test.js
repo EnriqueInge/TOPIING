@@ -140,7 +140,7 @@ test('Auditoría: detecta incompleto y completo', () => {
   full.ubicacion.provincia = 'LIMÓN'; full.ubicacion.canton = 'SIQUIRRES'; full.ubicacion.distrito = 'SIQUIRRES'; full.ubicacion.direccion = 'DE LA ESCUELA';
   full.levantamiento.este = '500000'; full.levantamiento.norte = '1100000'; full.levantamiento.precision = '3';
   full.verificacion = [{ elemento: 'LINDERO', plano: '12', sitio: '12.1', dif: '+0.10' }]; full.fotos = [{ dataUrl: 'data:img', capturedAt: 1 }];
-  full.responsable.nombre = 'ING'; full.responsable.registro = 'IT-30674';
+  full.responsable.nombre = 'ING'; full.responsable.registro = 'IT-30674'; full.responsable.firma = 'data:image/png;base64,AAA';
   const a2 = ctx.auditReport(full);
   assert(a2.errors === 0, 'completo sin errores: ' + a2.errors);
   assert(a2.complete, 'marcado completo');
