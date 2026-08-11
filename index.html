@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="es">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f4c81">
+  <meta name="description" content="Sistema TOPING/PYME de ubicación y verificación de bienes inmuebles en Costa Rica.">
+  <title>Ubicación y Verificación de Bien Inmueble</title>
+  <link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{
+    --brand:#0f4c81;--brand2:#1f77b4;--accent:#e07b00;--accent2:#f6a821;
+    --mint:#eef6fb;--ink:#17222b;--muted:#5e6f7a;--line:#d6e1ea;--paper:#fff;
+    --bg:#eef2f6;--ok:#12794a;--warn:#a96000;--red:#b21e1e;
+    --shadow:0 10px 30px rgba(20,35,50,.10);--radius:15px;
+    --conf-high:#12794a;--conf-mid:#a96000;--conf-low:#b21e1e;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Arial,Helvetica,sans-serif;line-height:1.45}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  .app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:9px 16px;background:linear-gradient(110deg,var(--brand) 0 62%,var(--brand2) 100%);color:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18);border-bottom:3px solid var(--accent)}
+  .brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+  .logos{display:flex;align-items:center;gap:8px}
+  .logo-box{display:grid;place-items:center;height:46px;min-width:46px;background:#fff;border-radius:11px;padding:5px 8px;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+  .logo-box img,.logo-box svg{height:100%;width:auto;max-width:120px;object-fit:contain;display:block}
+  .brand-txt{min-width:0;overflow:hidden}
+  .brand-txt h1{font-size:16px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand-txt small{display:block;opacity:.85;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .header-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex:0 0 auto}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#ffd54f}
+  .dot.online{background:#6ef39d}.dot.offline{background:#ffb74d}
+  .btn{border:0;border-radius:10px;padding:9px 12px;background:#fff;color:var(--brand);font-weight:700;box-shadow:0 2px 7px rgba(0,0,0,.09)}
+  .btn:hover{filter:brightness(.97)}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.accent{background:var(--accent);color:#fff}
+  .btn.secondary{background:var(--brand2);color:#fff}
+  .btn.warn{background:#fff4df;color:#7e4800;border:1px solid #f2cf8e}
+  .btn.danger{background:#fff0f0;color:var(--red);border:1px solid #efbcbc}
+  .btn.ghost{background:transparent;color:inherit;border:1px solid currentColor;box-shadow:none}
+  .btn.small{padding:6px 9px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .layout{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:calc(100vh - 60px)}
+  nav{position:sticky;top:60px;height:calc(100vh - 60px);overflow:auto;background:#f7fafc;border-right:1px solid var(--line);padding:14px}
+  .nav-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;margin:8px 8px}
+  .nav-btn{width:100%;display:flex;text-decoration:none;align-items:center;gap:9px;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:12px;color:#284350;margin:2px 0;min-height:44px;transition:.15s}
+  .nav-btn:hover{transform:translateX(2px)}
+  .nav-btn:hover,.nav-btn.active{background:linear-gradient(90deg,#e8f2fb,var(--mint));color:var(--brand);font-weight:700;box-shadow:inset 4px 0 var(--accent)}
+  .nav-num{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#e2ecf3;font-size:11px;flex:0 0 24px}
+  .nav-footer{padding:12px 8px;font-size:11px;color:var(--muted)}
+  main{padding:18px;max-width:1350px;width:100%;margin:0 auto}
+  .view{display:block}.js .view{display:none}.js .view.active{display:block}
+  .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#fff 0%,#eaf3fb 55%,#eef6fb 100%);border:1px solid #cfe0ec;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);display:flex;gap:20px;align-items:center;margin-bottom:16px}
+  .hero h2{margin:0 0 5px;font-size:22px;color:var(--brand)}
+  .hero p{margin:0;color:var(--muted)}
+  .hero .meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:0 5px 20px rgba(20,35,50,.05);margin-bottom:14px}
+  .card>h3{margin:0 0 12px;font-size:17px;color:var(--brand)}
+  .section-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .section-head h3{margin:0}.section-head .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
+  .col-12{grid-column:span 12}.col-8{grid-column:span 8}.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}.col-2{grid-column:span 2}
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#41545f;position:relative}
+  label.field > span.lab{font-weight:700}
+  input,select,textarea{width:100%;border:1px solid #bdccc4;border-color:#c1d0da;border-radius:9px;padding:9px 10px;background:#fff;color:#16221c}
+  input:focus,select:focus,textarea:focus{outline:3px solid rgba(31,119,180,.16);border-color:var(--brand2)}
+  textarea{min-height:70px;resize:vertical}
+  input[readonly]{background:#f2f6f4;color:#4d6258}
+  .required::after{content:" *";color:var(--red)}
+  .help{font-size:11px;color:var(--muted);margin-top:4px}
+  .notice{padding:12px;border-radius:12px;background:#eef6ff;border:1px solid #bdd9f3;color:#174f7f;font-size:13px;margin:10px 0}
+  .notice.warn{background:#fff8e9;border-color:#edd397;color:#744800}
+  .notice.danger{background:#fff0f0;border-color:#edb8b8;color:#7d1c1c}
+  .notice.ok{background:#ebf8ef;border-color:#b6dfc3;color:#155b2c}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .stat{background:#f6faf8;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .stat b{display:block;font-size:20px;color:var(--brand)}.stat span{font-size:11px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:7px;vertical-align:top}
+  th{background:#edf3f8;text-align:left;color:var(--brand)}
+  .table-wrap{overflow:auto;border-radius:10px}
+  .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .photo-card{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .photo-card img{width:100%;height:150px;object-fit:cover;background:#e9efeb;display:block}
+  .photo-card .body{padding:9px}
+  .case-list{display:grid;gap:10px}
+  .case-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .case-row b{color:var(--brand)}.case-row small{display:block;color:var(--muted)}
+  .case-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .toast{position:fixed;right:16px;bottom:16px;z-index:99;max-width:340px;padding:12px 14px;border-radius:12px;background:#17271f;color:#fff;box-shadow:var(--shadow);opacity:0;transform:translateY(20px);pointer-events:none;transition:.25s}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .hidden{display:none!important}
+  .mobile-nav{display:none}
+
+  /* Acordeón / secciones colapsables del formulario unificado */
+  .accordion{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 5px 20px rgba(20,35,50,.05);margin-bottom:16px}
+  .acc-sec{border-top:1px solid var(--line)}
+  .acc-sec:first-child{border-top:0}
+  .acc-head{display:flex;align-items:center;gap:10px;width:100%;background:#f4f9fc;border:0;padding:14px 16px;text-align:left;font-weight:800;color:var(--brand);font-size:15px}
+  .acc-head:hover{background:#eaf3fb}
+  .acc-head .chev{margin-left:auto;transition:.2s;color:var(--muted)}
+  .acc-head[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+  .acc-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#e2ecf3;color:var(--brand)}
+  .acc-badge.err{background:#fdecec;color:var(--red)}
+  .acc-body{padding:16px}
+  .acc-head[aria-expanded="false"]+.acc-body{display:none}
+
+  /* Barra de guardado única (sticky) */
+  .savebar{position:sticky;bottom:0;z-index:15;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;margin-top:6px;background:linear-gradient(180deg,rgba(255,255,255,.6),#fff 40%);border:1px solid var(--line);border-radius:14px;box-shadow:0 -6px 20px rgba(20,35,50,.08)}
+  .savebar .sb-status{font-size:13px;color:var(--muted)}
+  .savebar .sb-spacer{margin-left:auto}
+
+  /* Campos autocompletados desde PDF */
+  .field.autofilled input,.field.autofilled select,.field.autofilled textarea{background:#fff8ea;border-color:var(--accent2)}
+  .field.needs-input input,.field.needs-input select,.field.needs-input textarea{background:#fff5f5;border-color:#e6b0b0}
+  .conf-badge{position:absolute;top:0;right:0;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;color:#fff;letter-spacing:.02em}
+  .conf-badge.high{background:var(--conf-high)}
+  .conf-badge.mid{background:var(--conf-mid)}
+  .conf-badge.low{background:var(--conf-low)}
+  .conf-badge.manual{background:#5e6f7a}
+  .conf-badge.empty{background:#b21e1e}
+  .field .lab-row{display:flex;align-items:center;gap:8px;justify-content:space-between}
+
+  /* Dropzone PDF */
+  .dropzone{border:2px dashed var(--brand2);border-radius:14px;padding:22px;text-align:center;background:linear-gradient(135deg,#f3f9fd,#eef6fb);color:var(--brand);transition:.15s}
+  .dropzone.drag{background:#e3f0fa;border-color:var(--accent)}
+  .dropzone .big{font-size:15px;font-weight:800;margin:6px 0}
+  .progressbar{height:8px;background:#e6eef4;border-radius:10px;overflow:hidden;margin-top:10px}
+  .progressbar > span{display:block;height:100%;width:0;background:var(--brand2);transition:.2s}
+
+  /* Perfil / logos */
+  .logo-preview{height:60px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px;display:grid;place-items:center}
+  .logo-preview img,.logo-preview svg{max-height:100%;max-width:100%}
+
+  /* Pruebas */
+  .test-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:8px}
+  .test-badge{font-weight:800;font-size:12px;padding:3px 9px;border-radius:999px}
+  .test-badge.pass{background:#e7f7ee;color:var(--ok)}
+  .test-badge.fail{background:#fdecec;color:var(--red)}
+  .test-detail{font-size:12px;color:var(--muted)}
+
+  @media(max-width:900px){
+    .layout{display:block}nav{display:none}
+    .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:30;background:#fff;border-top:1px solid var(--line);overflow:auto;padding:5px}
+    .mobile-nav a{min-width:70px;border:0;background:transparent;padding:8px 5px;font-size:10px;color:#42564c;text-decoration:none;text-align:center}
+    .mobile-nav a.active{color:var(--brand);font-weight:bold;background:var(--mint);border-radius:8px}
+    main{padding:12px 12px 82px}
+    .hero{display:block}.hero .meta{text-align:left;margin-top:10px}
+    .col-8,.col-6,.col-4,.col-3,.col-2{grid-column:span 12}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .brand-txt small{display:none}
+  }
+
+  /* ====== IMPRESIÓN / PDF DEL INFORME ====== */
+  #printArea{display:none}
+  @media print{
+    .app-header,nav,.mobile-nav,.no-print,.savebar,.toast{display:none!important}
+    .layout{display:block}main{display:none!important}
+    body{background:#fff}
+    #printArea{display:block}
+    @page{size:A4;margin:26mm 14mm 16mm 14mm}
+    /* Encabezado repetido en cada página */
+    .print-head{position:fixed;top:-20mm;left:0;right:0;height:20mm;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--brand)}
+    .print-head .ph-logos{display:flex;gap:8px;align-items:center}
+    .print-head .ph-logos img,.print-head .ph-logos svg{height:15mm;width:auto}
+    .print-head .ph-prof{margin-left:auto;text-align:right;font-size:10px;line-height:1.3;color:#111}
+    .print-head .ph-prof b{font-size:11px;color:var(--brand)}
+    .print-foot{position:fixed;bottom:-12mm;left:0;right:0;height:10mm;font-size:9px;color:#555;border-top:1px solid #ccc;display:flex;justify-content:space-between;align-items:center}
+    .rep-title{text-align:center;margin:0 0 4px}
+    .rep-title h1{font-size:15px;margin:0;color:var(--brand)}
+    .rep-title p{font-size:10px;margin:2px 0;color:#333}
+    .rep-sec{margin:10px 0;break-inside:avoid}
+    .rep-sec h2{font-size:12px;background:#eef3f8;color:var(--brand);padding:5px 8px;margin:0 0 4px;border-left:4px solid var(--accent)}
+    #printArea table{width:100%;border-collapse:collapse;font-size:10px}
+    #printArea th,#printArea td{border:1px solid #9bb0c0;padding:4px 6px}
+    #printArea th{background:#f0f5fa}
+    .rep-photos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .rep-photos figure{margin:0;break-inside:avoid;border:1px solid #ccc;border-radius:6px;overflow:hidden}
+    .rep-photos img{width:100%;height:52mm;object-fit:cover;display:block}
+    .rep-photos figcaption{font-size:9px;padding:3px 5px;color:#333}
+    .sign-row{display:flex;gap:30px;margin-top:26px}
+    .sign-box{flex:1;text-align:center;font-size:10px;border-top:1px solid #333;padding-top:4px}
+  }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="logos" id="headerLogos"><!-- logos inyectados por JS --></div>
+    <div class="brand-txt">
+      <h1>Ubicación y Verificación de Bien Inmueble</h1>
+      <small id="headerProf">Ingeniero Enrique Alvarado Martínez — IT-30674</small>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="status-pill no-print"><span class="dot online" id="netDot"></span><span id="netTxt">En línea</span></span>
+    <button class="btn small" id="newBtn">＋ <span>Nuevo</span></button>
+    <button class="btn small accent" id="saveTopBtn">💾 <span>Guardar</span></button>
+  </div>
+</header>
+
+<div class="layout">
+<nav id="desktopNav">
+  <div class="nav-title">Expediente de campo</div>
+  <a class="nav-btn active" href="#expediente" data-target="expediente"><span class="nav-num">1</span> Expediente y datos</a>
+  <a class="nav-btn" href="#levantamiento" data-target="levantamiento"><span class="nav-num">2</span> Levantamiento</a>
+  <a class="nav-btn" href="#verificacion" data-target="verificacion"><span class="nav-num">3</span> Verificación</a>
+  <a class="nav-btn" href="#photos" data-target="photos"><span class="nav-num">4</span> Fotografías</a>
+  <a class="nav-btn" href="#report" data-target="report"><span class="nav-num">5</span> Informe</a>
+  <a class="nav-btn" href="#database" data-target="database"><span class="nav-num">6</span> Base local</a>
+  <a class="nav-btn" href="#profile" data-target="profile"><span class="nav-num">7</span> Perfil</a>
+  <a class="nav-btn" href="#tests" data-target="tests"><span class="nav-num">8</span> Pruebas</a>
+  <div class="nav-footer">Datos en este dispositivo (IndexedDB). Use respaldo JSON antes de borrar datos del navegador.</div>
+</nav>
+
+<main>
+  <!-- ============ VISTA 1: EXPEDIENTE UNIFICADO ============ -->
+  <section class="view active" id="view-expediente">
+    <div class="hero">
+      <div>
+        <h2>Expediente de ubicación</h2>
+        <p>Suba el estudio registral en PDF para autocompletar, o capture los datos manualmente. Módulos 1‑2‑3 en un solo formulario.</p>
+      </div>
+      <div class="meta"><b id="caseCode">CASO NUEVO</b><br><span id="clock"></span><br><span id="saveState">Sin guardar</span></div>
+    </div>
+
+    <!-- Carga de PDF -->
+    <div class="card no-print">
+      <h3>1 · Carga de documento (PDF registral)</h3>
+      <div class="dropzone" id="pdfDrop">
+        <div style="font-size:30px">📄⬆️</div>
+        <div class="big">Arrastre aquí el PDF del estudio de finca / Folio Real</div>
+        <div class="help">El sistema genera el número de expediente desde el <b>Folio Finca</b> y autocompleta los datos. Texto nativo + OCR de respaldo.</div>
+        <label class="btn primary" style="display:inline-block;margin-top:10px">Seleccionar PDF<input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden></label>
+        <div class="progressbar hidden" id="pdfProgWrap"><span id="pdfProg"></span></div>
+        <div id="pdfStatus" class="help" style="margin-top:8px"></div>
+      </div>
+      <div class="notice hidden" id="pdfSummary"></div>
+    </div>
+
+    <!-- Formulario unificado (Módulos 1,2,3) -->
+    <form id="mainForm" autocomplete="off">
+    <div class="accordion" id="mainAccordion">
+
+      <!-- SECCIÓN A: Datos generales del trámite (antiguo Módulo 1) -->
+      <div class="acc-sec">
+        <button type="button" class="acc-head" data-acc="A" aria-expanded="true">
+          <span>A · Datos generales del trámite</span><span class="acc-badge" data-badge="A"></span><span class="chev">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="grid">
+            <label class="field col-4"><span class="lab required">Expediente / trámite</span><input data-path="tramite.expediente" data-required id="expedienteInput" placeholder="Se genera del Folio Finca del PDF"><small class="help">Autogenerado desde el Folio Finca. Editable.</small></label>
+            <label class="field col-4"><span class="lab required">Tipo de informe</span>
+              <select data-path="tramite.tipoInforme" data-required>
+                <option value="">Seleccione</option>
+                <option>Ubicación y puesta en posesión</option>
+                <option>Ubicación de frente del bien</option>
+                <option>Verificación de linderos</option>
+                <option>Ubicación referencial</option>
+              </select></label>
+            <label class="field col-4"><span class="lab">Solicitante</span><input data-path="tramite.solicitante" placeholder="Ej. Administración de Bienes Adjudicados"></label>
+            <label class="field col-3"><span class="lab required">Fecha de inspección</span><input type="date" data-path="tramite.fechaInspeccion" data-required></label>
+            <label class="field col-3"><span class="lab">Fecha del informe</span><input type="date" data-path="tramite.fechaInforme"></label>
+          </div>
+          <div class="notice">Observaciones fijas del informe: <i>“El presente documento es con fines informativos no técnicos, para valoraciones a nivel interno del propietario.”</i></div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN B: Datos del inmueble (antiguo Módulo 2) -->
+      <div class="acc-sec">
+        <button type="button" class="acc-head" data-acc="B" aria-expanded="true">
+          <span>B · Datos del inmueble</span><span class="acc-badge" data-badge="B"></span><span class="chev">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="grid">
+            <label class="field col-4"><span class="lab required">Número de finca (Folio Finca)</span><input data-path="inmueble.folioFinca" data-required id="folioInput" placeholder="Ej. 7-90252-000"><small class="help">Base para el número de expediente.</small></label>
+            <label class="field col-4"><span class="lab">Plano catastrado</span><input data-path="inmueble.planoCatastrado" placeholder="Ej. L-0855909-1989"></label>
+            <label class="field col-4"><span class="lab required">Propietario registral</span><input data-path="inmueble.propietario" data-required></label>
+            <label class="field col-4"><span class="lab">Identificación</span><input data-path="inmueble.identificacion"></label>
+            <label class="field col-4"><span class="lab">Área según registro (m²)</span><input data-path="inmueble.areaRegistro" inputmode="decimal" placeholder="Dato registral"></label>
+            <label class="field col-4"><span class="lab">Uso observado</span><input data-path="inmueble.usoObservado" placeholder="Ej. Habitacional — vivienda de un nivel"></label>
+            <label class="field col-6"><span class="lab">Tipo de trámite</span><input data-path="inmueble.tipoTramite" placeholder="Ej. Ubicación de frente del bien y puesta en posesión"></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN C: Ubicación y acceso (antiguo Módulo 3) -->
+      <div class="acc-sec">
+        <button type="button" class="acc-head" data-acc="C" aria-expanded="true">
+          <span>C · Ubicación y acceso</span><span class="acc-badge" data-badge="C"></span><span class="chev">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="grid">
+            <label class="field col-3"><span class="lab required">Provincia</span><input data-path="ubicacion.provincia" data-required></label>
+            <label class="field col-3"><span class="lab required">Cantón</span><input data-path="ubicacion.canton" data-required></label>
+            <label class="field col-3"><span class="lab required">Distrito</span><input data-path="ubicacion.distrito" data-required></label>
+            <label class="field col-3"><span class="lab">Localidad</span><input data-path="ubicacion.localidad"></label>
+            <label class="field col-8"><span class="lab required">Dirección exacta</span><input data-path="ubicacion.direccion" data-required placeholder="Ej. De la Escuela, 20 m norte y 85 m este"></label>
+            <label class="field col-4"><span class="lab">Tipo de acceso</span>
+              <select data-path="ubicacion.tipoAcceso">
+                <option value="">Seleccione</option>
+                <option>Calle pública</option><option>Servidumbre de paso</option>
+                <option>Camino público no asfaltado</option><option>Acceso restringido</option>
+              </select></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra única de guardado -->
+    <div class="savebar no-print">
+      <button type="button" class="btn primary" id="saveBtn">💾 Guardar expediente</button>
+      <button type="button" class="btn ghost" id="validateBtn">Validar</button>
+      <span class="sb-status" id="saveBarStatus">Sin guardar</span>
+      <span class="sb-spacer"></span>
+      <button type="button" class="btn ghost small" id="expandAllBtn">Expandir todo</button>
+      <button type="button" class="btn ghost small" id="collapseAllBtn">Colapsar todo</button>
+    </div>
+    </form>
+  </section>
+
+  <!-- ============ VISTA 2: LEVANTAMIENTO ============ -->
+  <section class="view" id="view-levantamiento">
+    <div class="section-head"><h3>Levantamiento y coordenadas</h3></div>
+    <div class="card">
+      <div class="grid">
+        <label class="field col-6"><span class="lab">Método de levantamiento</span>
+          <select data-path="levantamiento.metodo">
+            <option value="">Seleccione</option>
+            <option>Receptores GNSS mediante RTK (Real Time Kinematic)</option>
+            <option>GNSS post-proceso (PPK)</option>
+            <option>Estación total</option><option>Cinta métrica / distanciómetro</option>
+          </select></label>
+        <label class="field col-3"><span class="lab">Fecha de toma</span><input type="date" data-path="levantamiento.fechaToma"></label>
+        <label class="field col-3"><span class="lab">Sistema de coordenadas</span>
+          <select data-path="levantamiento.sistema"><option>CRTM05</option><option>WGS84</option><option>Lambert Norte</option><option>Lambert Sur</option></select></label>
+        <label class="field col-3"><span class="lab">Coordenada Este</span><input data-path="levantamiento.este" inputmode="decimal"></label>
+        <label class="field col-3"><span class="lab">Coordenada Norte</span><input data-path="levantamiento.norte" inputmode="decimal"></label>
+        <label class="field col-6"><span class="lab">Finalidad del levantamiento</span><input data-path="levantamiento.finalidad" value="Ilustrativa — no constituye replanteo de linderos"></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA 3: VERIFICACIÓN ============ -->
+  <section class="view" id="view-verificacion">
+    <div class="section-head"><h3>Verificación de dimensiones y vía pública</h3>
+      <div class="actions"><button class="btn small primary" id="addVerifBtn">＋ Agregar fila</button></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table id="verifTable">
+          <thead><tr><th>Elemento verificado</th><th>Según plano (m)</th><th>En sitio (m)</th><th>Diferencia (m)</th><th></th></tr></thead>
+          <tbody id="verifBody"></tbody>
+        </table>
+      </div>
+      <div class="help">La diferencia se calcula automáticamente (En sitio − Según plano).</div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA 4: FOTOGRAFÍAS ============ -->
+  <section class="view" id="view-photos">
+    <div class="section-head"><h3>Registro fotográfico</h3>
+      <div class="actions"><label class="btn small primary" style="display:inline-block">＋ Agregar fotos<input id="photoInput" type="file" accept="image/*" capture="environment" multiple hidden></label></div>
+    </div>
+    <div class="card"><div class="photo-grid" id="photoGrid"></div><div id="photoEmpty" class="help">Sin fotografías. Use “Agregar fotos” (permite cámara en tablet).</div></div>
+  </section>
+
+  <!-- ============ VISTA 5: INFORME ============ -->
+  <section class="view" id="view-report">
+    <div class="section-head"><h3>Informe técnico</h3>
+      <div class="actions">
+        <button class="btn accent" id="buildReportBtn">Generar vista previa</button>
+        <button class="btn danger" id="printReportBtn">🖨️ Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Responsable del informe</h3>
+      <div class="grid">
+        <label class="field col-6"><span class="lab">Profesional responsable</span><input data-path="responsable.nombre"></label>
+        <label class="field col-3"><span class="lab">Carné / registro</span><input data-path="responsable.registro"></label>
+        <label class="field col-3"><span class="lab">Fecha de firma</span><input type="date" data-path="responsable.fecha"></label>
+      </div>
+      <div class="help">Por defecto toma los datos del Perfil profesional. Editable por expediente.</div>
+    </div>
+    <div class="card"><h3>Vista previa</h3><div id="reportPreview" class="help">Pulse “Generar vista previa”.</div></div>
+  </section>
+
+  <!-- ============ VISTA 6: BASE LOCAL ============ -->
+  <section class="view" id="view-database">
+    <div class="section-head"><h3>Base local de expedientes</h3>
+      <div class="actions">
+        <label class="btn small primary" style="display:inline-block">Importar Excel / CSV<input id="excelImport" type="file" accept=".xlsx,.xls,.csv" hidden></label>
+        <button class="btn small secondary" id="exportJsonBtn">Respaldo JSON</button>
+        <label class="btn small ghost" style="display:inline-block">Restaurar JSON<input id="importJson" type="file" accept=".json" hidden></label>
+      </div>
+    </div>
+    <div class="notice">La importación crea un expediente por fila. Encabezados admitidos: <code>folio/finca</code>, <code>propietario</code>, <code>identificacion</code>, <code>area</code>, <code>plano</code>, <code>provincia</code>, <code>canton</code>, <code>distrito</code>, <code>direccion</code>, <code>tipoInforme</code>. Se omiten folios duplicados.</div>
+    <div class="card"><div class="case-list" id="caseList"></div><div id="caseEmpty" class="help">Sin expedientes guardados.</div></div>
+  </section>
+
+  <!-- ============ VISTA 7: PERFIL ============ -->
+  <section class="view" id="view-profile">
+    <div class="section-head"><h3>Perfil profesional e identidad visual</h3></div>
+    <div class="card">
+      <h3>Profesional responsable (encabezado del informe)</h3>
+      <div class="grid">
+        <label class="field col-6"><span class="lab">Nombre completo</span><input id="profName" placeholder="Ingeniero Enrique Alvarado Martínez"></label>
+        <label class="field col-3"><span class="lab">Registro / carné</span><input id="profReg" placeholder="IT-30674"></label>
+        <label class="field col-3"><span class="lab">Título breve</span><input id="profTitle" placeholder="Ingeniero"></label>
+        <label class="field col-6"><span class="lab">Empresa / firma</span><input id="profCompany" placeholder="TOPING · PYME"></label>
+        <label class="field col-6"><span class="lab">Contacto (pie de página)</span><input id="profContact" placeholder="Tel / correo"></label>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Logos (TOPING y PYME)</h3>
+      <div class="notice">Suba los logos oficiales (PNG/SVG de alta resolución) para reemplazar los provisionales. Se conservan proporciones.</div>
+      <div class="grid">
+        <div class="col-6">
+          <div class="lab-row" style="font-weight:700;margin-bottom:6px">Logo TOPING</div>
+          <div class="logo-preview" id="prevToping"></div>
+          <label class="btn small ghost" style="display:inline-block;margin-top:8px">Subir logo TOPING<input id="logoToping" type="file" accept="image/*" hidden></label>
+        </div>
+        <div class="col-6">
+          <div class="lab-row" style="font-weight:700;margin-bottom:6px">Logo PYME</div>
+          <div class="logo-preview" id="prevPyme"></div>
+          <label class="btn small ghost" style="display:inline-block;margin-top:8px">Subir logo PYME<input id="logoPyme" type="file" accept="image/*" hidden></label>
+        </div>
+      </div>
+      <div style="margin-top:12px"><button class="btn primary" id="saveProfileBtn">Guardar perfil</button></div>
+    </div>
+  </section>
+
+  <!-- ============ VISTA 8: PRUEBAS ============ -->
+  <section class="view" id="view-tests">
+    <div class="section-head"><h3>Pruebas del sistema</h3>
+      <div class="actions"><button class="btn primary" id="runTestsBtn">▶ Ejecutar pruebas</button></div>
+    </div>
+    <div class="card">
+      <div class="stats" style="margin-bottom:12px">
+        <div class="stat"><b id="tPass">0</b><span>Aprobadas</span></div>
+        <div class="stat"><b id="tFail">0</b><span>Fallidas</span></div>
+        <div class="stat"><b id="tTotal">0</b><span>Total</span></div>
+        <div class="stat"><b id="tPct">—</b><span>Cobertura casos</span></div>
+      </div>
+      <div id="testResults"></div>
+    </div>
+  </section>
+</main>
+</div>
+
+<div class="mobile-nav" id="mobileNav">
+  <a href="#expediente" data-target="expediente" class="active">📋<br>Datos</a>
+  <a href="#levantamiento" data-target="levantamiento">📐<br>Levant.</a>
+  <a href="#verificacion" data-target="verificacion">✔️<br>Verif.</a>
+  <a href="#photos" data-target="photos">📷<br>Fotos</a>
+  <a href="#report" data-target="report">📄<br>Informe</a>
+  <a href="#database" data-target="database">🗄️<br>Base</a>
+  <a href="#profile" data-target="profile">👤<br>Perfil</a>
+  <a href="#tests" data-target="tests">🧪<br>Pruebas</a>
+</div>
+
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Librerías (CDN cdnjs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ============================================================
+   Sistema de Ubicación y Verificación de Bien Inmueble
+   TOPING · PYME  — build unificado
+   ============================================================ */
+"use strict";
+
+/* ---------- Logos provisionales (SVG) — reemplazables desde Perfil ---------- */
+const DEFAULT_LOGOS = {
+  toping: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 46"><rect width="150" height="46" rx="8" fill="#0f4c81"/><polygon points="12,34 24,14 36,34" fill="#f6a821"/><text x="46" y="30" font-family="Arial" font-weight="bold" font-size="20" fill="#fff">TOPING</text></svg>'),
+  pyme: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 46"><rect width="150" height="46" rx="8" fill="#e07b00"/><circle cx="24" cy="23" r="12" fill="#fff"/><text x="18" y="29" font-family="Arial" font-weight="bold" font-size="16" fill="#e07b00">P</text><text x="44" y="30" font-family="Arial" font-weight="bold" font-size="20" fill="#fff">PYME</text></svg>')
+};
+
+/* ---------- Estado ---------- */
+function newState(){
+  return {
+    meta:{ id:null, createdAt:null, updatedAt:null, status:'Borrador' },
+    tramite:{ expediente:'', tipoInforme:'', solicitante:'', fechaInspeccion:'', fechaInforme:'' },
+    inmueble:{ folioFinca:'', planoCatastrado:'', propietario:'', identificacion:'', areaRegistro:'', usoObservado:'', tipoTramite:'' },
+    ubicacion:{ provincia:'', canton:'', distrito:'', localidad:'', direccion:'', tipoAcceso:'' },
+    levantamiento:{ metodo:'', fechaToma:'', sistema:'CRTM05', este:'', norte:'', finalidad:'Ilustrativa — no constituye replanteo de linderos' },
+    verificacion:[],
+    responsable:{ nombre:'', registro:'', fecha:'' },
+    fotos:[],
+    extraction:{},      // { path: {source, confidence} }
+    _legacy:{}          // passthrough de campos históricos eliminados
+  };
+}
+let state = newState();
+let dirty = false;
+
+/* ---------- Perfil / settings ---------- */
+let settings = {
+  profName:'Ingeniero Enrique Alvarado Martínez', profReg:'IT-30674', profTitle:'Ingeniero',
+  profCompany:'TOPING · PYME', profContact:'',
+  logoToping:DEFAULT_LOGOS.toping, logoPyme:DEFAULT_LOGOS.pyme
+};
+
+/* ============================================================
+   IndexedDB
+   ============================================================ */
+const DB_NAME='ubi_bien_inmueble', DB_VER=1;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('cases')) db.createObjectStore('cases',{keyPath:'meta.id'});
+      if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv',{keyPath:'k'});
+    };
+    r.onsuccess=e=>res(e.target.result);
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+async function dbPut(store,val){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(val);tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);});}
+async function dbGetAll(store){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const rq=tx.objectStore(store).getAll();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=e=>rej(e.target.error);});}
+async function dbGet(store,key){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const rq=tx.objectStore(store).get(key);rq.onsuccess=()=>res(rq.result||null);rq.onerror=e=>rej(e.target.error);});}
+async function dbDel(store,key){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(key);tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);});}
+
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const $=(s,c=document)=>c.querySelector(s);
+const $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function toast(msg,type){const t=$('#toast');t.textContent=msg;t.className='toast show'+(type?(' '+type):'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2600);}
+function getPath(obj,path){return path.split('.').reduce((o,k)=>(o==null?undefined:o[k]),obj);}
+function setPath(obj,path,val){const ks=path.split('.');let o=obj;for(let i=0;i<ks.length-1;i++){if(o[ks[i]]==null||typeof o[ks[i]]!=='object')o[ks[i]]={};o=o[ks[i]];}o[ks[ks.length-1]]=val;}
+function uid(){return 'BI-'+Date.now().toString(36)+'-'+Math.floor(Math.random()*1e4).toString(36);}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function safeName(){return (state.tramite.expediente||'expediente').replace(/[^\w\-]+/g,'_');}
+
+/* ============================================================
+   Binding data-path <-> estado
+   ============================================================ */
+function bindInputs(){
+  $$('[data-path]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      setPath(state,el.dataset.path,el.value);
+      // Al editar un campo autocompletado pasa a manual
+      if(state.extraction[el.dataset.path] && state.extraction[el.dataset.path].source!=='manual'){
+        state.extraction[el.dataset.path]={source:'manual',confidence:1};
+        refreshFieldFlag(el);
+      }
+      markDirty();
+    });
+  });
+}
+function paintFromState(){
+  $$('[data-path]').forEach(el=>{
+    const v=getPath(state,el.dataset.path);
+    el.value=(v==null?'':v);
+    refreshFieldFlag(el);
+  });
+  $('#caseCode').textContent=state.tramite.expediente||'CASO NUEVO';
+  renderVerif(); renderPhotos(); updateBadges();
+  applyProfileToReportDefaults();
+}
+function markDirty(){dirty=true;$('#saveState').textContent='Cambios sin guardar';$('#saveBarStatus').textContent='Cambios sin guardar';updateBadges();}
+function markSaved(){dirty=false;const s='Guardado '+new Date().toLocaleTimeString('es-CR');$('#saveState').textContent=s;$('#saveBarStatus').textContent=s;}
+
+/* ============================================================
+   Autocompletado: marca visual + confianza
+   ============================================================ */
+function confClass(c){return c>=0.8?'high':c>=0.5?'mid':'low';}
+function confText(c){return Math.round(c*100)+'%';}
+function refreshFieldFlag(el){
+  const label=el.closest('.field'); if(!label) return;
+  const path=el.dataset.path;
+  const meta=state.extraction[path];
+  // limpia
+  label.classList.remove('autofilled','needs-input');
+  const old=label.querySelector('.conf-badge'); if(old) old.remove();
+  // Asegura contenedor lab-row para el badge
+  let span=label.querySelector('span.lab'); if(!span) return;
+  const badge=document.createElement('span'); badge.className='conf-badge';
+  if(meta && meta.source==='pdf'){
+    label.classList.add('autofilled');
+    badge.classList.add(confClass(meta.confidence));
+    badge.textContent='PDF '+confText(meta.confidence);
+    span.after(badge);
+  }else if(meta && meta.source==='manual'){
+    // editado manualmente: sin badge llamativo
+  }else if(el.hasAttribute('data-required') && !el.value){
+    // requerido y vacío -> señal de captura manual (solo tras un intento de autocompletar)
+    if(state.meta.id || Object.keys(state.extraction).length){
+      label.classList.add('needs-input');
+      badge.classList.add('empty'); badge.textContent='Falta'; span.after(badge);
+    }
+  }
+}
+function applyExtraction(fields){
+  // fields: { path: {value, confidence} }
+  Object.entries(fields).forEach(([path,info])=>{
+    if(info.value==null || info.value==='') return;
+    setPath(state,path,info.value);
+    state.extraction[path]={source:'pdf',confidence:info.confidence};
+  });
+  paintFromState();
+}
+
+/* ============================================================
+   PARSEO DE PDF  (texto nativo + OCR de respaldo)
+   ============================================================ */
+async function readPdfText(arrayBuffer,onProgress){
+  if(!window.pdfjsLib) throw new Error('pdf.js no disponible (sin conexión)');
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+  let text='';
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const tc=await page.getTextContent();
+    text+=tc.items.map(i=>i.str).join(' ')+'\n';
+    onProgress && onProgress(Math.round((p/pdf.numPages)*45));
+  }
+  return {text, pdf, native:true};
+}
+async function ocrPdf(pdf,onProgress){
+  if(!window.Tesseract) throw new Error('Tesseract no disponible (sin conexión)');
+  let text='';
+  const n=Math.min(pdf.numPages,4); // limita OCR por rendimiento
+  for(let p=1;p<=n;p++){
+    const page=await pdf.getPage(p);
+    const vp=page.getViewport({scale:2});
+    const canvas=document.createElement('canvas');canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    const {data}=await Tesseract.recognize(canvas,'spa',{logger:m=>{if(m.status==='recognizing text')onProgress&&onProgress(45+Math.round((p-1+m.progress)/n*50));}});
+    text+=data.text+'\n';
+  }
+  return text;
+}
+
+/* --- Extractores puros (testeables) --- */
+function normSpaces(s){return String(s||'').replace(/ /g,' ').replace(/[ \t]+/g,' ');}
+function firstMatch(text,regexes){
+  for(const re of regexes){const m=text.match(re);if(m&&m[1])return m[1].trim();}
+  return '';
+}
+// Extrae Folio Finca: patrones tipo 7-90252-000, 1-234567-000, o "Finca 6-12345"
+function extractFolio(text){
+  const t=normSpaces(text);
+  const res=firstMatch(t,[
+    /folio\s*real[:\s]*([1-7]-\d{5,6}-\d{3})/i,
+    /finca[:\s]*([1-7]-\d{5,6}-\d{3})/i,
+    /matr[íi]cula[:\s]*([1-7]-\d{5,6}-\d{3})/i,
+    /\b([1-7]-\d{5,6}-\d{3})\b/,
+    /folio\s*finca[:\s]*([0-9\-]{6,})/i
+  ]);
+  return res;
+}
+function extractFields(text){
+  const t=normSpaces(text);
+  const out={};
+  const push=(path,value,confidence)=>{ if(value) out[path]={value:value.trim(),confidence}; };
+  const nativeC = 0.9, ocrC = 0.55; // se ajusta según fuente afuera
+  const folio=extractFolio(t);
+  push('inmueble.folioFinca',folio,folio?0.92:0);
+  push('inmueble.planoCatastrado',firstMatch(t,[/plano\s*catastrad[oa][:\s]*([A-Z]-\d{6,7}-\d{4})/i,/\b([A-Z]-\d{6,7}-\d{4})\b/]),0.85);
+  push('inmueble.propietario',firstMatch(t,[/propietari[oa][:\s]*([A-ZÁÉÍÓÚÑ][^\n]{4,70}?)(?:\s{2,}|c[eé]dula|identificaci|\n|$)/i,/titular[:\s]*([A-ZÁÉÍÓÚÑ][^\n]{4,70})/i]),0.7);
+  push('inmueble.identificacion',firstMatch(t,[/c[eé]dula(?:\s*jur[íi]dica)?[:\s]*(\d[\d\-]{7,})/i,/identificaci[óo]n[:\s]*(\d[\d\-]{7,})/i]),0.8);
+  const area=firstMatch(t,[/[áa]rea[:\s]*([\d.,]+)\s*m/i,/medida[:\s]*([\d.,]+)\s*m/i,/([\d.,]+)\s*metros\s*cuadrados/i]);
+  push('inmueble.areaRegistro',area?area.replace(/\./g,'').replace(',','.'):'',0.75);
+  push('inmueble.usoObservado',firstMatch(t,[/naturaleza[:\s]*([^\n]{4,60}?)(?=\s+(?:provincia|cant[óo]n|distrito|propietario|plano|[áa]rea|situaci[óo]n|c[eé]dula)|\s*$|\n)/i]),0.6);
+  const STOP='(?=\\s+(?:cant[óo]n|distrito|provincia|propietario|titular|plano|[áa]rea|medida|naturaleza|situaci[óo]n|direcci[óo]n|c[eé]dula|matr[íi]cula|identificaci|folio)|\\s*$|\\n)';
+  const loc=lbl=>firstMatch(t,[new RegExp(lbl+'[:\\s]+([A-Za-zÁÉÍÓÚÑáéíóúñ .]{3,30}?)'+STOP,'i')]);
+  push('ubicacion.provincia',loc('provincia'),0.7);
+  push('ubicacion.canton',loc('cant[óo]n'),0.7);
+  push('ubicacion.distrito',loc('distrito'),0.7);
+  push('ubicacion.direccion',firstMatch(t,[/situaci[óo]n[:\s]*([^\n]{6,90})/i,/direcci[óo]n[:\s]*([^\n]{6,90})/i]),0.55);
+  return out;
+}
+// Ajusta confianzas por fuente (OCR reduce)
+function adjustConfidenceForSource(fields,native){
+  if(native) return fields;
+  const f={};Object.entries(fields).forEach(([k,v])=>{f[k]={value:v.value,confidence:Math.min(v.confidence,0.55)};});
+  return f;
+}
+
+/* --- Generación de expediente desde folio + anti-duplicado --- */
+function generateExpediente(folio){
+  if(!folio) return '';
+  const clean=String(folio).trim().replace(/\s+/g,'');
+  const yr=new Date().getFullYear();
+  return 'UBI-'+yr+'-'+clean;
+}
+function findCaseByFolio(cases,folio){
+  if(!folio) return null;
+  const norm=s=>String(s||'').replace(/\s+/g,'').toLowerCase();
+  return cases.find(c=>norm(c.inmueble&&c.inmueble.folioFinca)===norm(folio)) || null;
+}
+
+/* --- Flujo completo de carga de PDF --- */
+async function handlePdfFile(file){
+  const prog=$('#pdfProg'), wrap=$('#pdfProgWrap'), status=$('#pdfStatus');
+  wrap.classList.remove('hidden'); prog.style.width='5%';
+  status.textContent='Leyendo PDF…';
+  try{
+    const buf=await file.arrayBuffer();
+    let native=true, textResult;
+    try{ textResult=await readPdfText(buf.slice(0),p=>prog.style.width=p+'%'); }
+    catch(e){ textResult={text:'',pdf:null,native:false}; }
+    let text=textResult.text||'';
+    // OCR de respaldo si el texto nativo es escaso (PDF escaneado)
+    if(text.replace(/\s/g,'').length<40 && textResult.pdf){
+      status.textContent='Texto escaso: aplicando OCR de respaldo…';
+      native=false;
+      try{ text=await ocrPdf(textResult.pdf,p=>prog.style.width=p+'%'); }
+      catch(e){ status.textContent='OCR no disponible. '+e.message; }
+    }
+    prog.style.width='96%';
+    let fields=extractFields(text);
+    fields=adjustConfidenceForSource(fields,native);
+    const folio=fields['inmueble.folioFinca']?fields['inmueble.folioFinca'].value:extractFolio(text);
+
+    // Anti-duplicado
+    const cases=await dbGetAll('cases');
+    const dup=findCaseByFolio(cases,folio);
+    if(dup){
+      wrap.classList.add('hidden');
+      $('#pdfSummary').className='notice danger';
+      $('#pdfSummary').innerHTML='⚠️ Ya existe un expediente para el Folio Finca <b>'+esc(folio)+'</b> ('+esc(dup.tramite.expediente||dup.meta.id)+'). No se creó uno nuevo. '+
+        '<button class="btn small" id="openDupBtn">Abrir existente</button>';
+      $('#pdfSummary').classList.remove('hidden');
+      $('#openDupBtn').onclick=()=>loadCase(dup.meta.id);
+      toast('Folio duplicado: '+folio,'');
+      return;
+    }
+    // Aplica extracción y genera expediente
+    applyExtraction(fields);
+    if(folio){
+      const exp=generateExpediente(folio);
+      setPath(state,'tramite.expediente',exp);
+      state.extraction['tramite.expediente']={source:'pdf',confidence:0.9};
+      setPath(state,'inmueble.folioFinca',folio);
+      state.extraction['inmueble.folioFinca']={source:'pdf',confidence:fields['inmueble.folioFinca']?fields['inmueble.folioFinca'].confidence:0.9};
+    }
+    if(!state.tramite.fechaInspeccion) state.tramite.fechaInspeccion=todayISO();
+    paintFromState(); markDirty();
+
+    const nDet=Object.keys(fields).length;
+    prog.style.width='100%';
+    $('#pdfSummary').className='notice ok';
+    $('#pdfSummary').innerHTML='✅ PDF procesado por '+(native?'<b>texto nativo</b>':'<b>OCR</b>')+'. Folio: <b>'+esc(folio||'no detectado')+'</b> · Expediente: <b>'+esc(state.tramite.expediente||'—')+'</b> · Campos detectados: <b>'+nDet+'</b>. Revise los campos marcados y complete los que quedaron en “Falta”.';
+    $('#pdfSummary').classList.remove('hidden');
+    status.textContent='Listo.';
+    if(!folio) toast('No se detectó Folio Finca. Capture el expediente manualmente.','');
+    setTimeout(()=>wrap.classList.add('hidden'),800);
+  }catch(err){
+    console.error(err);
+    wrap.classList.add('hidden');
+    status.textContent='Error al procesar el PDF: '+err.message;
+    toast('Error al procesar PDF','');
+  }
+}
+
+/* ============================================================
+   Verificación (tabla dinámica)
+   ============================================================ */
+function renderVerif(){
+  const tb=$('#verifBody'); tb.innerHTML='';
+  state.verificacion.forEach((row,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input value="${esc(row.elemento)}" data-vi="${i}" data-vk="elemento"></td>
+      <td><input value="${esc(row.plano)}" inputmode="decimal" data-vi="${i}" data-vk="plano" style="min-width:90px"></td>
+      <td><input value="${esc(row.sitio)}" inputmode="decimal" data-vi="${i}" data-vk="sitio" style="min-width:90px"></td>
+      <td><input value="${esc(row.dif)}" data-vi="${i}" data-vk="dif" readonly style="min-width:80px;background:#f2f6f4"></td>
+      <td><button class="btn small danger" data-vdel="${i}">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  $$('#verifBody input:not([readonly])').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const i=+inp.dataset.vi,k=inp.dataset.vk;
+      state.verificacion[i][k]=inp.value;
+      if(k==='plano'||k==='sitio'){
+        const p=parseFloat(state.verificacion[i].plano),s=parseFloat(state.verificacion[i].sitio);
+        if(!isNaN(p)&&!isNaN(s)){const d=(s-p);state.verificacion[i].dif=(d>0?'+':'')+d.toFixed(2);}else state.verificacion[i].dif='';
+        renderVerif();
+      }
+      markDirty();
+    });
+  });
+  $$('#verifBody [data-vdel]').forEach(b=>b.addEventListener('click',()=>{state.verificacion.splice(+b.dataset.vdel,1);renderVerif();markDirty();}));
+}
+function addVerifRow(row){ state.verificacion.push(row||{elemento:'',plano:'',sitio:'',dif:''}); renderVerif(); markDirty(); }
+
+/* ============================================================
+   Fotografías
+   ============================================================ */
+function renderPhotos(){
+  const g=$('#photoGrid'); g.innerHTML='';
+  $('#photoEmpty').style.display=state.fotos.length?'none':'block';
+  state.fotos.forEach((f,i)=>{
+    const c=document.createElement('div'); c.className='photo-card';
+    c.innerHTML=`<img src="${f.dataUrl}" alt="foto">
+      <div class="body">
+        <input placeholder="Categoría / vista" value="${esc(f.categoria)}" data-pi="${i}" data-pk="categoria" style="margin-bottom:6px">
+        <input placeholder="Descripción" value="${esc(f.descripcion)}" data-pi="${i}" data-pk="descripcion">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px">
+          <small>${new Date(f.capturedAt).toLocaleString('es-CR')}</small>
+          <button class="btn small danger" data-pdel="${i}">Eliminar</button>
+        </div>
+      </div>`;
+    g.appendChild(c);
+  });
+  $$('#photoGrid input').forEach(inp=>inp.addEventListener('input',()=>{state.fotos[+inp.dataset.pi][inp.dataset.pk]=inp.value;markDirty();}));
+  $$('#photoGrid [data-pdel]').forEach(b=>b.addEventListener('click',()=>{state.fotos.splice(+b.dataset.pdel,1);renderPhotos();markDirty();}));
+}
+function addPhotos(files){
+  [...files].forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{state.fotos.push({dataUrl:e.target.result,categoria:'',descripcion:'',capturedAt:Date.now()});renderPhotos();markDirty();};
+    r.readAsDataURL(file);
+  });
+}
+
+/* ============================================================
+   Validaciones
+   ============================================================ */
+function validate(){
+  const errors=[];
+  $$('[data-required]').forEach(el=>{
+    if(!el.value || !String(el.value).trim()){
+      const lab=el.closest('.field'); const name=lab?lab.querySelector('.lab').textContent.replace('*','').trim():el.dataset.path;
+      errors.push({path:el.dataset.path,name});
+    }
+    refreshFieldFlag(el);
+  });
+  updateBadges();
+  return errors;
+}
+function updateBadges(){
+  // Badge por sección del acordeón
+  const map={A:['tramite.expediente','tramite.tipoInforme','tramite.fechaInspeccion'],
+             B:['inmueble.folioFinca','inmueble.propietario'],
+             C:['ubicacion.provincia','ubicacion.canton','ubicacion.distrito','ubicacion.direccion']};
+  Object.entries(map).forEach(([sec,paths])=>{
+    const miss=paths.filter(p=>{const v=getPath(state,p);return !v||!String(v).trim();}).length;
+    const b=$(`[data-badge="${sec}"]`); if(!b) return;
+    if(miss){b.textContent=miss+' pendiente'+(miss>1?'s':'');b.classList.add('err');}
+    else{b.textContent='✓ completo';b.classList.remove('err');}
+  });
+}
+
+/* ============================================================
+   Guardar / Cargar
+   ============================================================ */
+async function saveCase(){
+  const errors=validate();
+  if(!state.meta.id) state.meta.id=uid();
+  if(!state.meta.createdAt) state.meta.createdAt=Date.now();
+  state.meta.updatedAt=Date.now();
+  state.meta.status=errors.length?'Con pendientes':'Completo';
+  // Compatibilidad histórica: _legacy se conserva tal cual dentro del objeto
+  await dbPut('cases',JSON.parse(JSON.stringify(state)));
+  markSaved();
+  toast(errors.length?('Guardado con '+errors.length+' pendiente(s)'):'Expediente guardado','');
+  renderCaseList();
+}
+async function loadCase(id){
+  const c=await dbGet('cases',id);
+  if(!c){toast('No encontrado','');return;}
+  // Migración/compatibilidad: mezcla con esquema nuevo y preserva campos eliminados en _legacy
+  state=migrateRecord(c);
+  paintFromState();
+  markSaved();
+  showView('expediente');
+  toast('Expediente cargado','');
+}
+// Preserva campos históricos eliminados (fechaSolicitud, planoConsulta, origenDato, fechaConsultaRegistral)
+function migrateRecord(c){
+  const s=newState();
+  // copia profunda de secciones conocidas
+  ['meta','tramite','inmueble','ubicacion','levantamiento','responsable'].forEach(k=>{ if(c[k]) Object.assign(s[k],c[k]); });
+  s.verificacion=Array.isArray(c.verificacion)?c.verificacion:[];
+  s.fotos=Array.isArray(c.fotos)?c.fotos:[];
+  s.extraction=c.extraction||{};
+  s._legacy=c._legacy||{};
+  // Rescata campos eliminados si vinieran en el objeto histórico (interfaz antigua)
+  const legacyKeys=[
+    ['tramite','fechaSolicitud'],['inmueble','planoConsulta'],
+    ['inmueble','origenDato'],['inmueble','fechaConsultaRegistral'],
+    // nombres alternativos históricos
+    ['general','declarationDate'],['general','planoConsulta']
+  ];
+  legacyKeys.forEach(([grp,key])=>{
+    if(c[grp] && c[grp][key]!=null && c[grp][key]!==''){
+      s._legacy[grp+'.'+key]=c[grp][key];
+    }
+  });
+  // Campos eliminados: nunca deben quedar en el payload activo (solo en _legacy)
+  const removed=[['tramite','fechaSolicitud'],['inmueble','planoConsulta'],['inmueble','origenDato'],['inmueble','fechaConsultaRegistral']];
+  removed.forEach(([grp,key])=>{ if(s[grp]) delete s[grp][key]; });
+  return s;
+}
+
+/* ============================================================
+   Base local + Excel/CSV + JSON
+   ============================================================ */
+async function renderCaseList(){
+  const cases=(await dbGetAll('cases')).sort((a,b)=>(b.meta.updatedAt||0)-(a.meta.updatedAt||0));
+  const list=$('#caseList'); list.innerHTML='';
+  $('#caseEmpty').style.display=cases.length?'none':'block';
+  cases.forEach(c=>{
+    const row=document.createElement('div'); row.className='case-row';
+    row.innerHTML=`<div>
+      <b>${esc(c.tramite.expediente||c.meta.id)}</b>
+      <small>Folio ${esc(c.inmueble.folioFinca||'—')} · ${esc(c.inmueble.propietario||'Sin propietario')} · ${esc(c.meta.status||'')}</small>
+      <small>${c.meta.updatedAt?new Date(c.meta.updatedAt).toLocaleString('es-CR'):''}</small>
+    </div>
+    <div class="case-actions">
+      <button class="btn small primary" data-open="${esc(c.meta.id)}">Abrir</button>
+      <button class="btn small danger" data-del="${esc(c.meta.id)}">Borrar</button>
+    </div>`;
+    list.appendChild(row);
+  });
+  $$('#caseList [data-open]').forEach(b=>b.onclick=()=>loadCase(b.dataset.open));
+  $$('#caseList [data-del]').forEach(b=>b.onclick=async()=>{if(confirm('¿Borrar expediente?')){await dbDel('cases',b.dataset.del);renderCaseList();toast('Borrado','');}});
+}
+function colVal(obj,keys){for(const k of Object.keys(obj)){const kn=k.toLowerCase().trim();if(keys.some(x=>kn.includes(x)))return obj[k];}return '';}
+async function importSpreadsheet(file){
+  const name=file.name.toLowerCase();
+  let rows=[];
+  if(name.endsWith('.csv')){
+    const text=await file.text();
+    rows=csvToObjects(text);
+  }else{
+    if(!window.XLSX){toast('Librería XLSX no disponible (sin conexión). Use CSV.','');return;}
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+  }
+  const existing=await dbGetAll('cases');
+  let created=0, dup=0;
+  for(const r of rows){
+    const folio=String(colVal(r,['folio','finca','matricula'])||'').trim();
+    if(!folio){continue;}
+    if(findCaseByFolio(existing,folio)){dup++;continue;}
+    const s=newState();
+    s.meta.id=uid();s.meta.createdAt=Date.now();s.meta.updatedAt=Date.now();s.meta.status='Asignado';
+    s.inmueble.folioFinca=folio;
+    s.tramite.expediente=generateExpediente(folio);
+    s.inmueble.propietario=String(colVal(r,['propietario','titular'])||'');
+    s.inmueble.identificacion=String(colVal(r,['identificacion','cedula'])||'');
+    s.inmueble.areaRegistro=String(colVal(r,['area','medida'])||'');
+    s.inmueble.planoCatastrado=String(colVal(r,['plano'])||'');
+    s.ubicacion.provincia=String(colVal(r,['provincia'])||'');
+    s.ubicacion.canton=String(colVal(r,['canton','cantón'])||'');
+    s.ubicacion.distrito=String(colVal(r,['distrito'])||'');
+    s.ubicacion.direccion=String(colVal(r,['direccion','dirección','situacion'])||'');
+    s.tramite.tipoInforme=String(colVal(r,['tipoinforme','tipo'])||'');
+    await dbPut('cases',s);
+    existing.push(s); created++;
+  }
+  renderCaseList();
+  toast(`Importación: ${created} creado(s), ${dup} folio(s) duplicado(s) omitido(s)`,'');
+}
+function csvToObjects(text){
+  const lines=text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+  if(!lines.length) return [];
+  const split=l=>{const out=[];let cur='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(ch===','&&!q){out.push(cur);cur='';}else cur+=ch;}out.push(cur);return out;};
+  const headers=split(lines[0]).map(h=>h.trim());
+  return lines.slice(1).map(l=>{const c=split(l);const o={};headers.forEach((h,i)=>o[h]=(c[i]||'').trim());return o;});
+}
+async function exportJson(){
+  const cases=await dbGetAll('cases');
+  const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),settings,cases},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo_expedientes.json';a.click();
+}
+async function importJsonFile(file){
+  const data=JSON.parse(await file.text());
+  if(data.settings){settings=Object.assign(settings,data.settings);await dbPut('kv',{k:'settings',v:settings});applySettings();}
+  const cases=data.cases||[];
+  for(const c of cases){if(!c.meta||!c.meta.id)c.meta={...(c.meta||{}),id:uid()};await dbPut('cases',c);}
+  renderCaseList();toast(cases.length+' expediente(s) restaurado(s)','');
+}
+
+/* ============================================================
+   Perfil / Logos
+   ============================================================ */
+async function loadSettings(){
+  const kv=await dbGet('kv','settings');
+  if(kv&&kv.v) settings=Object.assign(settings,kv.v);
+  applySettings();
+}
+function applySettings(){
+  $('#headerLogos').innerHTML=`<div class="logo-box"><img src="${settings.logoToping}" alt="TOPING"></div><div class="logo-box"><img src="${settings.logoPyme}" alt="PYME"></div>`;
+  $('#headerProf').textContent=`${settings.profName} — ${settings.profReg}`;
+  $('#profName').value=settings.profName; $('#profReg').value=settings.profReg; $('#profTitle').value=settings.profTitle||'';
+  $('#profCompany').value=settings.profCompany||''; $('#profContact').value=settings.profContact||'';
+  $('#prevToping').innerHTML=`<img src="${settings.logoToping}">`;
+  $('#prevPyme').innerHTML=`<img src="${settings.logoPyme}">`;
+}
+function applyProfileToReportDefaults(){
+  if(!state.responsable.nombre) $('[data-path="responsable.nombre"]')&&($('[data-path="responsable.nombre"]').value=settings.profName);
+  if(!state.responsable.registro) $('[data-path="responsable.registro"]')&&($('[data-path="responsable.registro"]').value=settings.profReg);
+}
+async function saveProfile(){
+  settings.profName=$('#profName').value.trim()||settings.profName;
+  settings.profReg=$('#profReg').value.trim();
+  settings.profTitle=$('#profTitle').value.trim();
+  settings.profCompany=$('#profCompany').value.trim();
+  settings.profContact=$('#profContact').value.trim();
+  await dbPut('kv',{k:'settings',v:settings});
+  applySettings(); toast('Perfil guardado','');
+}
+function uploadLogo(which,file){
+  const r=new FileReader();
+  r.onload=async e=>{settings[which==='toping'?'logoToping':'logoPyme']=e.target.result;await dbPut('kv',{k:'settings',v:settings});applySettings();toast('Logo actualizado','');};
+  r.readAsDataURL(file);
+}
+
+/* ============================================================
+   INFORME (vista previa + impresión/PDF)
+   ============================================================ */
+function reportHead(){
+  return `<div class="print-head">
+    <div class="ph-logos"><img src="${settings.logoToping}"><img src="${settings.logoPyme}"></div>
+    <div class="ph-prof"><b>${esc(settings.profName)}</b><br>${esc(settings.profTitle||'')} · Reg. ${esc(settings.profReg)}<br>${esc(settings.profCompany||'')}</div>
+  </div>
+  <div class="print-foot"><span>${esc(settings.profCompany||'TOPING · PYME')}${settings.profContact?(' · '+esc(settings.profContact)):''}</span><span>Documento informativo no técnico</span></div>`;
+}
+function tbl(rows){
+  return `<table><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c.h?`<b>${esc(c.h)}</b>`:esc(c)}`+ (c.v!==undefined?` : ${esc(c.v)}`:'') +`</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+function kvRow(a,av,b,bv){return `<tr><td><b>${esc(a)}</b></td><td>${esc(av||'Sin datos')}</td><td><b>${esc(b)}</b></td><td>${esc(bv||'Sin datos')}</td></tr>`;}
+function buildReportHTML(st){
+  st=st||state;
+  const t=st.tramite,i=st.inmueble,u=st.ubicacion,l=st.levantamiento,r=st.responsable;
+  const verifRows=(st.verificacion||[]).map(v=>`<tr><td>${esc(v.elemento)}</td><td>${esc(v.plano)}</td><td>${esc(v.sitio)}</td><td>${esc(v.dif)}</td></tr>`).join('')
+    || '<tr><td colspan="4">Sin verificaciones registradas.</td></tr>';
+  const fotos=(st.fotos||[]).map((p,n)=>`<figure><img src="${p.dataUrl}"><figcaption>Fotografía ${n+1}. ${esc(p.categoria||'Vista general')}${p.descripcion?(' — '+esc(p.descripcion)):''}</figcaption></figure>`).join('');
+  return `${reportHead()}
+  <div class="rep-title">
+    <h1>INFORME TÉCNICO DE UBICACIÓN DE BIEN INMUEBLE</h1>
+    <p>Expediente de ubicación de predio, verificación de linderos y puesta en posesión</p>
+  </div>
+  <div class="rep-sec"><h2>1. Datos generales del trámite</h2>
+    <table><tbody>
+      ${kvRow('Expediente / trámite',t.expediente,'Tipo de informe',t.tipoInforme)}
+      ${kvRow('Fecha de inspección',fmtDate(t.fechaInspeccion),'Fecha del informe',fmtDate(t.fechaInforme))}
+      ${kvRow('Solicitante',t.solicitante,'Estado',st.meta&&st.meta.status)}
+    </tbody></table>
+    <p style="font-size:9px;margin:4px 0"><i>Observaciones: El presente documento es con fines informativos no técnicos, para valoraciones a nivel interno del propietario.</i></p>
+  </div>
+  <div class="rep-sec"><h2>2. Datos del inmueble</h2>
+    <table><tbody>
+      ${kvRow('Número de finca (Folio)',i.folioFinca,'Plano catastrado',i.planoCatastrado)}
+      ${kvRow('Propietario registral',i.propietario,'Identificación',i.identificacion)}
+      ${kvRow('Área según registro',i.areaRegistro?i.areaRegistro+' m²':'','Uso observado',i.usoObservado)}
+      ${kvRow('Tipo de trámite',i.tipoTramite,'',' ')}
+    </tbody></table>
+  </div>
+  <div class="rep-sec"><h2>3. Ubicación y acceso</h2>
+    <table><tbody>
+      ${kvRow('Provincia',u.provincia,'Cantón',u.canton)}
+      ${kvRow('Distrito',u.distrito,'Localidad',u.localidad)}
+      ${kvRow('Dirección exacta',u.direccion,'Tipo de acceso',u.tipoAcceso)}
+    </tbody></table>
+  </div>
+  <div class="rep-sec"><h2>4. Levantamiento y coordenadas</h2>
+    <table><tbody>
+      ${kvRow('Método de levantamiento',l.metodo,'Fecha de toma',fmtDate(l.fechaToma))}
+      ${kvRow('Coordenada Este',l.este,'Coordenada Norte',l.norte)}
+      ${kvRow('Sistema de coordenadas',l.sistema,'Finalidad',l.finalidad)}
+    </tbody></table>
+  </div>
+  <div class="rep-sec"><h2>5. Verificación de dimensiones y vía pública</h2>
+    <table><thead><tr><th>Elemento verificado</th><th>Según plano (m)</th><th>En sitio (m)</th><th>Diferencia (m)</th></tr></thead>
+    <tbody>${verifRows}</tbody></table>
+  </div>
+  ${fotos?`<div class="rep-sec"><h2>6. Registro fotográfico</h2><div class="rep-photos">${fotos}</div></div>`:''}
+  <div class="rep-sec">
+    <div class="sign-row">
+      <div class="sign-box">${esc(r.nombre||settings.profName)}<br>${esc(r.registro||settings.profReg)}<br>Profesional responsable</div>
+      <div class="sign-box">Fecha: ${esc(fmtDate(r.fecha)||fmtDate(todayISO()))}</div>
+    </div>
+  </div>`;
+}
+function fmtDate(iso){ if(!iso) return ''; const p=String(iso).split('-'); if(p.length===3) return `${p[2]}/${p[1]}/${p[0]}`; return iso; }
+function buildReport(){
+  $('#printArea').innerHTML=buildReportHTML(state);
+  // Vista previa embebida (sin position fixed)
+  const preview=buildReportHTML(state).replace(/class="print-head"/,'class="print-head" style="position:static;border-bottom:2px solid #0f4c81;padding-bottom:8px;margin-bottom:8px;display:flex;align-items:center;gap:10px"').replace(/class="print-foot"[^>]*>[\s\S]*?<\/div>/,'');
+  $('#reportPreview').innerHTML='<div style="border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff">'+preview+'</div>';
+}
+
+/* ============================================================
+   Navegación
+   ============================================================ */
+function showView(target){
+  $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+target));
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===target));
+  $$('#mobileNav a').forEach(b=>b.classList.toggle('active',b.dataset.target===target));
+  if(target==='database') renderCaseList();
+  if(target==='report') buildReport();
+  window.scrollTo(0,0);
+}
+
+/* ============================================================
+   PRUEBAS (deliverable e)
+   ============================================================ */
+const SAMPLE_FULL = `REGISTRO INMOBILIARIO  ESTUDIO DE FINCA
+Folio Real: 7-90252-000
+Naturaleza: Terreno para construir con una casa
+Provincia: Limon  Canton: Siquirres  Distrito: Siquirres
+Propietario: Mutual Cartago de Ahorro y Prestamo   Cedula juridica: 3-009-045222
+Plano catastrado: L-0855909-1989
+Area: 250,50 metros cuadrados
+Situacion: De la Escuela 20 metros norte y 85 metros este`;
+const SAMPLE_PARTIAL = `Folio Real: 1-334455-000
+Provincia: San Jose
+Naturaleza: Lote`;
+function assert(cond,msg){ if(!cond) throw new Error(msg); }
+function runTests(){
+  const results=[];
+  const add=(name,fn)=>{try{fn();results.push({name,pass:true,detail:'OK'});}catch(e){results.push({name,pass:false,detail:e.message});}};
+
+  // 1. Extracción exitosa
+  add('Extracción exitosa (texto nativo completo)',()=>{
+    const f=extractFields(SAMPLE_FULL);
+    assert(f['inmueble.folioFinca'] && f['inmueble.folioFinca'].value==='7-90252-000','Folio no extraído: '+JSON.stringify(f['inmueble.folioFinca']));
+    assert(f['inmueble.planoCatastrado'] && f['inmueble.planoCatastrado'].value==='L-0855909-1989','Plano no extraído');
+    assert(f['ubicacion.provincia'] && /Limon/i.test(f['ubicacion.provincia'].value),'Provincia no extraída');
+    assert(f['inmueble.identificacion'] && f['inmueble.identificacion'].value.replace(/-/g,'').length>=9,'Cédula no extraída');
+    assert(Object.keys(f).length>=5,'Se esperaban >=5 campos');
+  });
+
+  // 2. Extracción parcial
+  add('Extracción parcial (campos faltantes quedan sin detectar)',()=>{
+    const f=extractFields(SAMPLE_PARTIAL);
+    assert(f['inmueble.folioFinca'] && f['inmueble.folioFinca'].value==='1-334455-000','Folio parcial no extraído');
+    assert(!f['inmueble.planoCatastrado'],'Plano no debería detectarse');
+    assert(!f['inmueble.propietario'],'Propietario no debería detectarse');
+    assert(f['ubicacion.provincia'],'Provincia sí debía extraerse');
+  });
+
+  // 3. Folio duplicado
+  add('Folio duplicado (no se crea expediente nuevo)',()=>{
+    const folio='7-90252-000';
+    const exp=generateExpediente(folio);
+    assert(exp==='UBI-'+new Date().getFullYear()+'-7-90252-000','Expediente mal generado: '+exp);
+    const store=[{meta:{id:'x'},inmueble:{folioFinca:'7-90252-000'},tramite:{expediente:exp}}];
+    assert(findCaseByFolio(store,folio)!==null,'No detectó duplicado exacto');
+    assert(findCaseByFolio(store,' 7-90252-000 ')!==null,'No normalizó espacios');
+    assert(findCaseByFolio(store,'1-000000-000')===null,'Falso positivo de duplicado');
+  });
+
+  // 4. Generación de informe
+  add('Generación de informe (HTML con secciones y logos)',()=>{
+    const st=newState();
+    st.tramite.expediente='UBI-2026-7-90252-000'; st.tramite.tipoInforme='Ubicación y puesta en posesión';
+    st.inmueble.folioFinca='7-90252-000'; st.inmueble.propietario='MUCAP';
+    st.ubicacion.provincia='Limón'; st.ubicacion.canton='Siquirres'; st.ubicacion.distrito='Siquirres';
+    st.verificacion=[{elemento:'Lindero ESTE',plano:'12.00',sitio:'12.15',dif:'+0.15'}];
+    const html=buildReportHTML(st);
+    assert(html.includes('INFORME TÉCNICO DE UBICACIÓN'),'Falta título');
+    assert(html.includes('7-90252-000'),'Falta folio');
+    assert(html.includes('1. Datos generales del trámite'),'Falta sección 1');
+    assert(html.includes('5. Verificación'),'Falta sección 5');
+    assert(html.includes(settings.profReg),'Falta encabezado profesional');
+    assert(html.includes('logoToping')||html.includes('data:image')||html.includes('svg'),'Faltan logos');
+    assert(!/MUCAP/i.test(reportHead()),'El encabezado no debe contener logo MUCAP');
+  });
+
+  // 5. Compatibilidad histórica
+  add('Compatibilidad histórica (campos eliminados se preservan en _legacy)',()=>{
+    const legacy={meta:{id:'old1'},tramite:{expediente:'X',fechaSolicitud:'2025-01-01'},inmueble:{folioFinca:'2-1-1',planoConsulta:'L-1','origenDato':'Registro'},ubicacion:{}};
+    const m=migrateRecord(legacy);
+    assert(m._legacy['tramite.fechaSolicitud']==='2025-01-01','No preservó fechaSolicitud');
+    assert(m._legacy['inmueble.planoConsulta']==='L-1','No preservó planoConsulta');
+    assert(m.tramite.fechaSolicitud===undefined,'fechaSolicitud no debe estar en el payload activo');
+  });
+
+  // Render
+  const box=$('#testResults'); box.innerHTML='';
+  let pass=0;
+  results.forEach(r=>{
+    if(r.pass)pass++;
+    const row=document.createElement('div');row.className='test-row';
+    row.innerHTML=`<span class="test-badge ${r.pass?'pass':'fail'}">${r.pass?'PASA':'FALLA'}</span><div><b>${esc(r.name)}</b><div class="test-detail">${esc(r.detail)}</div></div><span>${r.pass?'✓':'✕'}</span>`;
+    box.appendChild(row);
+  });
+  $('#tPass').textContent=pass;$('#tFail').textContent=results.length-pass;$('#tTotal').textContent=results.length;
+  $('#tPct').textContent=Math.round(pass/results.length*100)+'%';
+  toast(`Pruebas: ${pass}/${results.length} aprobadas`,'');
+  return results;
+}
+
+/* ============================================================
+   Init
+   ============================================================ */
+function initNav(){
+  $$('.nav-btn, #mobileNav a').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();showView(b.dataset.target);}));
+}
+function initAccordion(){
+  $$('.acc-head').forEach(h=>h.addEventListener('click',()=>{
+    const ex=h.getAttribute('aria-expanded')==='true';h.setAttribute('aria-expanded',(!ex).toString());
+  }));
+  $('#expandAllBtn').onclick=()=>$$('.acc-head').forEach(h=>h.setAttribute('aria-expanded','true'));
+  $('#collapseAllBtn').onclick=()=>$$('.acc-head').forEach(h=>h.setAttribute('aria-expanded','false'));
+}
+function clock(){const el=$('#clock');if(el)el.textContent=new Date().toLocaleString('es-CR');}
+function net(){const on=navigator.onLine;$('#netDot').className='dot '+(on?'online':'offline');$('#netTxt').textContent=on?'En línea':'Sin conexión';}
+
+function init(){
+  bindInputs();
+  initNav();
+  initAccordion();
+  clock();setInterval(clock,1000);
+  net();window.addEventListener('online',net);window.addEventListener('offline',net);
+
+  // Guardado
+  $('#saveBtn').onclick=saveCase; $('#saveTopBtn').onclick=saveCase;
+  $('#validateBtn').onclick=()=>{const e=validate();toast(e.length?(e.length+' campo(s) pendiente(s)'):'Todo válido','');};
+  $('#newBtn').onclick=()=>{if(dirty&&!confirm('Hay cambios sin guardar. ¿Crear un expediente nuevo?'))return;state=newState();paintFromState();$('#pdfSummary').classList.add('hidden');toast('Nuevo expediente','');showView('expediente');};
+
+  // PDF
+  $('#pdfInput').onchange=e=>{if(e.target.files[0])handlePdfFile(e.target.files[0]);};
+  const dz=$('#pdfDrop');
+  ['dragover','dragenter'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type==='application/pdf')handlePdfFile(f);else toast('Suelte un archivo PDF','');});
+
+  // Verificación / Fotos
+  $('#addVerifBtn').onclick=()=>addVerifRow();
+  $('#photoInput').onchange=e=>{addPhotos(e.target.files);e.target.value='';};
+
+  // Informe
+  $('#buildReportBtn').onclick=()=>{buildReport();toast('Vista previa generada','');};
+  $('#printReportBtn').onclick=()=>{buildReport();setTimeout(()=>window.print(),150);};
+
+  // Base local
+  $('#excelImport').onchange=e=>{if(e.target.files[0])importSpreadsheet(e.target.files[0]);e.target.value='';};
+  $('#exportJsonBtn').onclick=exportJson;
+  $('#importJson').onchange=e=>{if(e.target.files[0])importJsonFile(e.target.files[0]);e.target.value='';};
+
+  // Perfil
+  $('#saveProfileBtn').onclick=saveProfile;
+  $('#logoToping').onchange=e=>{if(e.target.files[0])uploadLogo('toping',e.target.files[0]);};
+  $('#logoPyme').onchange=e=>{if(e.target.files[0])uploadLogo('pyme',e.target.files[0]);};
+
+  // Pruebas
+  $('#runTestsBtn').onclick=runTests;
+
+  // Semilla de verificación (como el machote)
+  if(!state.verificacion.length){
+    state.verificacion=[
+      {elemento:'Lindero ESTE',plano:'',sitio:'',dif:''},
+      {elemento:'Referencia a esquina',plano:'',sitio:'',dif:''},
+      {elemento:'Ancho de calle pública',plano:'',sitio:'',dif:''}
+    ];
+  }
+  loadSettings().then(()=>{ paintFromState(); });
+  renderCaseList();
+}
+document.addEventListener('DOMContentLoaded',init);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>

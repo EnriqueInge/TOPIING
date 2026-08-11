@@ -1,0 +1,25 @@
+{
+  "name": "ubicacion-bien-inmueble",
+  "version": "1.0.0",
+  "description": "Sistema de toma de datos en campo e informe técnico de ubicación de bien inmueble (TOPING · PYME). Carga de PDF con OCR, autocompletado, verificación de dimensiones y generación de informe PDF.",
+  "private": true,
+  "scripts": {
+    "test": "node tests/logic.test.js",
+    "start": "python3 -m http.server 8080"
+  },
+  "keywords": [
+    "costa-rica",
+    "bien-inmueble",
+    "avaluo",
+    "ubicacion",
+    "pdf",
+    "ocr",
+    "topografia",
+    "toping",
+    "pyme"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

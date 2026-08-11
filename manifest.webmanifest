@@ -1,0 +1,17 @@
+{
+  "name": "Ubicación y Verificación de Bien Inmueble",
+  "short_name": "Ubicación B.I.",
+  "description": "Toma de datos en campo e informe técnico de ubicación de bien inmueble.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#eef2f6",
+  "theme_color": "#0f4c81",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='28' fill='%230f4c81'/%3E%3Cpolygon points='48,140 96,56 144,140' fill='%23f6a821'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
