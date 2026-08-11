@@ -390,10 +390,11 @@
   <section class="view" id="view-photos">
     <div class="section-head"><h3>Registro fotográfico</h3>
       <div class="actions">
-        <label class="btn small primary" style="display:inline-block">📷 Tomar / cargar fotos<input id="photoInput" type="file" accept="image/*" capture="environment" multiple hidden></label>
+        <label class="btn small primary" style="display:inline-block">📷 Tomar foto<input id="photoCamera" type="file" accept="image/*" capture="environment" hidden></label>
+        <label class="btn small secondary" style="display:inline-block">🖼️ Cargar desde archivo<input id="photoInput" type="file" accept="image/*" multiple hidden></label>
       </div>
     </div>
-    <div class="notice">Sin límite de cantidad. Cada foto guarda fecha y hora y se imprime a 10 cm × 8 cm en el informe.</div>
+    <div class="notice"><b>📷 Tomar foto</b> abre la cámara del dispositivo (celular/tablet). <b>🖼️ Cargar desde archivo</b> permite elegir una o varias imágenes guardadas. Sin límite de cantidad; cada foto guarda fecha y hora y se imprime a 10 cm × 8 cm en el informe.</div>
     <div class="card"><div class="photo-grid" id="photoGrid"></div><div id="photoEmpty" class="help">Sin fotografías.</div></div>
     <div class="card">
       <h3>🔖 Estado del trámite</h3>
@@ -1366,6 +1367,7 @@ function init(){
   $('#gpsBtn').onclick=captureCoords;
   $('#addVerifBtn').onclick=()=>addVerifRow();
   $('#photoInput').onchange=e=>{addPhotos(e.target.files);e.target.value='';};
+  $('#photoCamera').onchange=e=>{addPhotos(e.target.files);e.target.value='';};
   $('#buildReportBtn').onclick=()=>{buildReport();toast('Vista previa generada (editable)');};
   $('#printReportBtn').onclick=()=>{
     const a=auditReport(state);
